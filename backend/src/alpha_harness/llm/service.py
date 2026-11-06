@@ -203,15 +203,20 @@ class LLMService:
         system: str,
         user: str,
         model_ref: str | None,
-        response_schema: dict[str, Any],
+        response_schema: dict[str, Any] | None,
         temperature: float,
         thinking: str | None = None,
+        plain: bool = False,
     ) -> Answer:
         """Send one prompt, rotating keys by remaining budget. ``model_ref`` names the model
         as :func:`.registry.model_ref` spells it.
 
         ``thinking`` is one of Google's thinking levels. Not a free upgrade: thinking tokens
         are billed against the same per-minute budget as the answer.
+
+        ``plain`` asks for free text with no ``response_format``, for callers whose answer is
+        not a JSON object (SPC's is a top-level array). Everything else, rotation and budget
+        included, is the same path.
         """
         model = self.model_for(model_ref)
         estimate = estimate_tokens(system) + estimate_tokens(user)
@@ -220,7 +225,7 @@ class LLMService:
         effort = _effort(model, thinking)
         # Google holds the answer to the schema. The others are only asked for a JSON object,
         # which not all of them honour either; the prompt names the keys it needs.
-        schema = response_schema if model.provider == "google" else None
+        schema = response_schema if model.provider == "google" and not plain else None
         sampling = None if model.ref in self._default_sampling else temperature
 
         while True:
@@ -249,6 +254,7 @@ class LLMService:
                             temperature=sampling,
                             schema=schema,
                             reasoning_effort=effort,
+                            plain=plain,
                         ),
                         timeout=TIMEOUT_SECONDS,
                     )

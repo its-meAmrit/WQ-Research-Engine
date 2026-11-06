@@ -599,3 +599,170 @@ class LLMModel(Base):
     # An index rather than a table constraint, so a database that already has the table
     # gains it on startup: SQLite cannot add a constraint to a live table.
     __table_args__ = (Index("uq_llm_model_provider_model", "provider", "model", unique=True),)
+
+
+# --- SPC Research Lab -----------------------------------------------------
+#
+# Independent of every simulation table above: an SPC prompt is a text thesis an LLM turns
+# into a stock portfolio, not a Fast Expression, and no BRAIN simulation ever runs for one.
+
+
+class SpcRunStatus(StrEnum):
+    """Local lifecycle of one SPC test run. Distinct from anything BRAIN reports."""
+
+    QUEUED = "queued"
+    RESEARCHING = "researching"
+    GENERATING = "generating"
+    VALIDATING = "validating"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+    @property
+    def terminal(self) -> bool:
+        return self in (SpcRunStatus.COMPLETED, SpcRunStatus.FAILED, SpcRunStatus.CANCELLED)
+
+
+class SpcPrompt(Base):
+    """A prompt the consultant is developing for the Systematic Prediction Challenge.
+
+    Holds the submission metadata that can change without changing the prompt's text. The text
+    itself lives in :class:`SpcPromptVersion`, so editing it never rewrites history.
+    """
+
+    __tablename__ = "spc_prompt"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="", server_default="")
+    universe: Mapped[str] = mapped_column(String(200), default="", server_default="")
+    theme: Mapped[str] = mapped_column(String(200), default="", server_default="")
+    #: daily | weekly | monthly | quarterly
+    update_frequency: Mapped[str] = mapped_column(
+        String(16), default="weekly", server_default="weekly"
+    )
+    #: Portfolio weight in hundredths (0..100), so two decimal places never meet a float.
+    weight_hundredths: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    #: A model as :func:`~alpha_harness.llm.registry.model_ref` spells it.
+    preferred_model: Mapped[str | None] = mapped_column(String(300))
+    model_version: Mapped[str | None] = mapped_column(String(100))
+    archived: Mapped[bool] = mapped_column(default=False, server_default="0")
+    #: The version the consultant marked as the one to submit. Not a foreign key: versions
+    #: reference their prompt, and a cycle between the two tables helps nothing.
+    preferred_version_id: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
+
+
+class SpcPromptVersion(Base):
+    """One immutable text of a prompt. Edits add a version; none is ever changed."""
+
+    __tablename__ = "spc_prompt_version"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    prompt_id: Mapped[int] = mapped_column(ForeignKey("spc_prompt.id", ondelete="CASCADE"))
+    number: Mapped[int] = mapped_column(Integer)
+    prompt_text: Mapped[str] = mapped_column(Text)
+    #: The Prompt Studio options that generated this text, or null for one written by hand.
+    settings: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    note: Mapped[str] = mapped_column(String(300), default="", server_default="")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+    __table_args__ = (Index("uq_spc_version_number", "prompt_id", "number", unique=True),)
+
+
+class SpcRun(Base):
+    """One test of a prompt version: what was sent, what came back, and whether it validates.
+
+    The prompt text, model and submission metadata are copied in, not referenced, so editing the
+    prompt afterwards cannot change what this run says it tested.
+    """
+
+    __tablename__ = "spc_run"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    prompt_id: Mapped[int] = mapped_column(ForeignKey("spc_prompt.id", ondelete="CASCADE"))
+    version_id: Mapped[int] = mapped_column(ForeignKey("spc_prompt_version.id", ondelete="CASCADE"))
+    version_number: Mapped[int] = mapped_column(Integer)
+    prompt_snapshot: Mapped[str] = mapped_column(Text)
+    #: Name, frequency, weight and model version as they were when this run started.
+    meta_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
+    model_ref: Mapped[str] = mapped_column(String(300))
+    provider: Mapped[str] = mapped_column(String(32))
+    model_id: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(16), default=SpcRunStatus.QUEUED.value)
+    #: What it is doing now, or why it stopped.
+    message: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: The model's answer, byte for byte.
+    raw_output: Mapped[str | None] = mapped_column(Text)
+    #: The JSON array text taken out of ``raw_output``: a substring of it, never reformatted.
+    sample_json: Mapped[str | None] = mapped_column(Text)
+    #: True when the answer passed every blocking check; null until validated.
+    valid: Mapped[bool | None] = mapped_column()
+    validation: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    usage: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    research: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    #: The earlier run this one corrects, when it came from a corrective pass.
+    corrects_run_id: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+
+    __table_args__ = (
+        Index("ix_spc_run_prompt", "prompt_id", "created_at"),
+        Index("ix_spc_run_status", "status"),
+    )
+
+
+class SpcPosition(Base):
+    """One security in a run's validated portfolio."""
+
+    __tablename__ = "spc_position"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int] = mapped_column(ForeignKey("spc_run.id", ondelete="CASCADE"))
+    #: Its place in the model's array.
+    position: Mapped[int] = mapped_column(Integer)
+    company_name: Mapped[str] = mapped_column(String(300))
+    ticker: Mapped[str] = mapped_column(String(40))
+    isin: Mapped[str] = mapped_column(String(12))
+    mic: Mapped[str] = mapped_column(String(4))
+    confidence_score: Mapped[float] = mapped_column(Float)
+    investment_horizon: Mapped[float] = mapped_column(Float)
+    return_prediction: Mapped[float] = mapped_column(Float)
+    #: How far each identifier was checked: see ``spc.identifiers``.
+    isin_status: Mapped[str] = mapped_column(String(24))
+    mic_status: Mapped[str] = mapped_column(String(24))
+    #: ``verified`` or ``mismatch`` only when a security master the user supplied covered the
+    #: ISIN; otherwise ``unverified``. A valid checksum never makes a mapping ``verified``.
+    mapping_status: Mapped[str] = mapped_column(
+        String(24), default="unverified", server_default="unverified"
+    )
+
+    __table_args__ = (
+        UniqueConstraint("run_id", "position", name="uq_spc_position_run_pos"),
+        Index("ix_spc_position_isin", "isin"),
+    )
+
+
+class SpcEvidence(Base):
+    """One source the research step retrieved for a run."""
+
+    __tablename__ = "spc_evidence"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int] = mapped_column(ForeignKey("spc_run.id", ondelete="CASCADE"))
+    url: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(Text, default="", server_default="")
+    source_type: Mapped[str] = mapped_column(String(32), default="web", server_default="web")
+    #: As the source gave it, or null when it did not say. Never guessed.
+    published_at: Mapped[str | None] = mapped_column(String(40))
+    retrieved_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    snippet: Mapped[str] = mapped_column(Text, default="", server_default="")
+    query: Mapped[str] = mapped_column(Text, default="", server_default="")
+    stale: Mapped[bool] = mapped_column(default=False, server_default="0")
+    companies: Mapped[list[Any] | None] = mapped_column(JSON)
+
+    __table_args__ = (Index("ix_spc_evidence_run", "run_id"),)

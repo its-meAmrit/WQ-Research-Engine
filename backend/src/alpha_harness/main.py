@@ -40,6 +40,7 @@ from .api import (
     quarter,
     search_lab,
     sims,
+    spc,
     super_lab,
     tasks,
     template_lab,
@@ -188,6 +189,7 @@ def create_app() -> FastAPI:
     app.include_router(super_lab.router)
     app.include_router(chat.router)
     app.include_router(competitions.router)
+    app.include_router(spc.router)
     app.include_router(update.router)
     app.include_router(preferences.router)
     app.include_router(ws.router)
