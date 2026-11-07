@@ -41,6 +41,7 @@ from .realtime import (
     Hub,
 )
 from .sealing import Sealer
+from .spc.service import SpcService
 from .tasks import TaskRegistry, cancel_background, spawn
 from .vault.backfill import Backfill
 from .vault.store import AlphaVault
@@ -106,6 +107,7 @@ class AppState:
         self.models = ModelRegistry(self.db)
         self.llm = LLMService(self.db, self.sealer, self.models)
         self.chat = ChatService(self.db, self.llm, self.queries)
+        self.spc = SpcService(self.db, self.llm, self.settings.data_dir, self.tasks)
         self.optimizer = Optimizer(
             self.db,
             self.engine,
@@ -156,6 +158,8 @@ class AppState:
         # Not caught: dispatching new work on top of an unreconciled queue is how orphans
         # and double sends start, so a failure here stops startup and says why.
         await self.tracker.reconcile()
+        # SPC runs are local text jobs, but one left "running" by a crash would say so forever.
+        await self.spc.reconcile()
 
         # A sync killed with the process would otherwise report RUNNING forever.
         try:
@@ -290,6 +294,7 @@ class AppState:
             watch.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await watch
+        await self.spc.stop()
         await self.optimizer.stop()
         await self.engine.stop()
         await self.tracker.stop()

@@ -1686,6 +1686,278 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/spc/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Prompts
+         * @description Candidate prompts from an idea and options. Free: no model call, nothing saved.
+         */
+        post: operations["generate_prompts_api_spc_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Options
+         * @description Models you can run, the documented limits, research status and schema notes.
+         */
+        get: operations["options_api_spc_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/overlap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Overlap */
+        post: operations["run_overlap_api_spc_overlap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/prompts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Prompts */
+        get: operations["list_prompts_api_spc_prompts_get"];
+        put?: never;
+        /** Create Prompt */
+        post: operations["create_prompt_api_spc_prompts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/prompts/{prompt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Prompt */
+        get: operations["get_prompt_api_spc_prompts__prompt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Prompt
+         * @description Edit details, or save a new text as a new version. Earlier versions never change.
+         */
+        patch: operations["update_prompt_api_spc_prompts__prompt_id__patch"];
+        trace?: never;
+    };
+    "/api/spc/prompts/{prompt_id}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare Versions */
+        get: operations["compare_versions_api_spc_prompts__prompt_id__compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/prompts/{prompt_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Duplicate Prompt */
+        post: operations["duplicate_prompt_api_spc_prompts__prompt_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/prompts/{prompt_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Prompt */
+        get: operations["export_prompt_api_spc_prompts__prompt_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/prompts/{prompt_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Prompt
+         * @description Queue a real run and return it at once. Follow it with ``GET /runs/{id}``.
+         */
+        post: operations["test_prompt_api_spc_prompts__prompt_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/prompts/{prompt_id}/versions/{number}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Version */
+        post: operations["restore_version_api_spc_prompts__prompt_id__versions__number__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Runs */
+        get: operations["list_runs_api_spc_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Run */
+        get: operations["get_run_api_spc_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/runs/{run_id}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Analytics */
+        get: operations["run_analytics_api_spc_runs__run_id__analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Run */
+        post: operations["cancel_run_api_spc_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spc/runs/{run_id}/correct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Correct Run
+         * @description A new run that shows the model its earlier answer's errors. The original is kept.
+         */
+        post: operations["correct_run_api_spc_runs__run_id__correct_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/super-lab/plan": {
         parameters: {
             query?: never;
@@ -2620,6 +2892,31 @@ export interface components {
             /** Problems */
             problems: string[];
         };
+        /** Analytics */
+        Analytics: {
+            /** Comparison */
+            comparison: {
+                [key: string]: unknown;
+            } | null;
+            /** Performance */
+            performance: {
+                [key: string]: unknown;
+            };
+            /** Previousrunid */
+            previousRunId: number | null;
+            /** Promptid */
+            promptId: number;
+            /** Promptname */
+            promptName: string;
+            /** Runid */
+            runId: number;
+            /** Scoring */
+            scoring: string[];
+            /** Summary */
+            summary: {
+                [key: string]: unknown;
+            };
+        };
         /** Assistant */
         Assistant: {
             /** Budget */
@@ -3024,6 +3321,20 @@ export interface components {
             /** Updatedat */
             updatedAt: string | null;
         };
+        /** Check */
+        Check: {
+            /** Detail */
+            detail: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pass" | "warn" | "fail";
+        };
         /**
          * CheckResult
          * @enum {string}
@@ -3214,6 +3525,16 @@ export interface components {
             /** Value Score */
             value_score: number | null;
         };
+        /** DiffLine */
+        DiffLine: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "add" | "del" | "ctx";
+            /** Text */
+            text: string;
+        };
         /** DropResult */
         DropResult: {
             /** Dropped */
@@ -3260,6 +3581,28 @@ export interface components {
             slotsFree: number;
             /** Slotsused */
             slotsUsed: number;
+        };
+        /** EvidenceOut */
+        EvidenceOut: {
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Query */
+            query: string;
+            /**
+             * Retrievedat
+             * Format: date-time
+             */
+            retrievedAt: string;
+            /** Snippet */
+            snippet: string;
+            /** Sourcetype */
+            sourceType: string;
+            /** Stale */
+            stale: boolean;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
         };
         /**
          * EvolutionMarket
@@ -3330,6 +3673,33 @@ export interface components {
             simulations: number;
             /** Universe */
             universe: string;
+        };
+        /** ExportOut */
+        ExportOut: {
+            /** Checks */
+            checks: components["schemas"]["Check"][];
+            /** Package */
+            package: {
+                [key: string]: unknown;
+            } | null;
+            /** Promptid */
+            promptId: number;
+            /** Promptname */
+            promptName: string;
+            /** Prompttext */
+            promptText: string | null;
+            /** Ready */
+            ready: boolean;
+            /** Runid */
+            runId: number | null;
+            /** Samplejson */
+            sampleJson: string | null;
+            /** Schemanote */
+            schemaNote: string;
+            /** Schemaverified */
+            schemaVerified: boolean;
+            /** Versionnumber */
+            versionNumber: number | null;
         };
         /** Failure */
         Failure: {
@@ -3542,6 +3912,79 @@ export interface components {
             kind: "fields";
             /** Vector Operators */
             vector_operators?: string[];
+        };
+        /** Generated */
+        Generated: {
+            /** Candidates */
+            candidates: components["schemas"]["PromptCandidate"][];
+        };
+        /**
+         * GenerationOptions
+         * @description What Prompt Studio asks for. Every field has a default, so a thesis alone is enough.
+         */
+        GenerationOptions: {
+            /** Approaches */
+            approaches?: string[];
+            /**
+             * Constraints
+             * @default
+             */
+            constraints: string;
+            /**
+             * Direction
+             * @default long_short
+             * @enum {string}
+             */
+            direction: "long_short" | "long_only" | "short_only";
+            /**
+             * Freshnessdays
+             * @default 90
+             */
+            freshnessDays: number;
+            /**
+             * Horizondays
+             * @default 30
+             */
+            horizonDays: number;
+            /**
+             * Maxcountrypercent
+             * @default 40
+             */
+            maxCountryPercent: number;
+            /**
+             * Maxsectorpercent
+             * @default 30
+             */
+            maxSectorPercent: number;
+            /**
+             * Returnunit
+             * @default fraction
+             * @enum {string}
+             */
+            returnUnit: "fraction" | "percent";
+            /**
+             * Sector
+             * @default
+             */
+            sector: string;
+            /**
+             * Targetequities
+             * @default 50
+             */
+            targetEquities: number;
+            /** Thesis */
+            thesis: string;
+            /**
+             * Universe
+             * @default Global listed equities
+             */
+            universe: string;
+            /**
+             * Updatefrequency
+             * @default weekly
+             * @enum {string}
+             */
+            updateFrequency: "daily" | "weekly" | "monthly" | "quarterly";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -3889,6 +4332,17 @@ export interface components {
             /** Universe */
             universe: string;
         };
+        /** ModelChoice */
+        ModelChoice: {
+            /** Id */
+            id: string;
+            /** Provider */
+            provider: string;
+            /** Ref */
+            ref: string;
+            /** Remainingtoday */
+            remainingToday: number;
+        };
         /**
          * ModelInfo
          * @description One model and the limits its user gave it. Each key gets these limits in full.
@@ -3981,6 +4435,18 @@ export interface components {
             dataset_ids?: string[];
             /** Field Ids */
             field_ids?: string[];
+        };
+        /** Overlap */
+        Overlap: {
+            /** Overlap */
+            overlap: {
+                [key: string]: unknown;
+            };
+        };
+        /** OverlapRequest */
+        OverlapRequest: {
+            /** Runids */
+            runIds: number[];
         };
         /** Pair */
         Pair: {
@@ -4253,6 +4719,31 @@ export interface components {
             /** Taskid */
             taskId: string;
         };
+        /** PositionOut */
+        PositionOut: {
+            /** Companyname */
+            companyName: string;
+            /** Confidencescore */
+            confidenceScore: number;
+            /** Investmenthorizon */
+            investmentHorizon: number;
+            /** Isin */
+            isin: string;
+            /** Isinstatus */
+            isinStatus: string;
+            /** Mappingstatus */
+            mappingStatus: string;
+            /** Mic */
+            mic: string;
+            /** Micstatus */
+            micStatus: string;
+            /** Position */
+            position: number;
+            /** Returnprediction */
+            returnPrediction: number;
+            /** Ticker */
+            ticker: string;
+        };
         /**
          * PowerPoolCorrelation
          * @description What the Power Pool panel shows for one task.
@@ -4477,6 +4968,113 @@ export interface components {
             /** Truncation */
             truncation?: number | null;
         };
+        /** PromptCandidate */
+        PromptCandidate: {
+            /** Approach */
+            approach: string;
+            /** Characters */
+            characters: number;
+            /** Label */
+            label: string;
+            /** Prompttext */
+            promptText: string;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** PromptCreate */
+        PromptCreate: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Modelversion */
+            modelVersion?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Preferredmodel */
+            preferredModel?: string | null;
+            /** Prompttext */
+            promptText: string;
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Theme
+             * @default
+             */
+            theme: string;
+            /**
+             * Universe
+             * @default
+             */
+            universe: string;
+            /**
+             * Updatefrequency
+             * @default weekly
+             * @enum {string}
+             */
+            updateFrequency: "daily" | "weekly" | "monthly" | "quarterly";
+            /**
+             * Weight
+             * @default 0
+             */
+            weight: number;
+        };
+        /** PromptDetail */
+        PromptDetail: {
+            /** Archived */
+            archived: boolean;
+            /** Characters */
+            characters: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Description */
+            description: string;
+            /** Id */
+            id: number;
+            lastRun: components["schemas"]["RunBrief"] | null;
+            /** Latestversion */
+            latestVersion: number;
+            /** Latestversionid */
+            latestVersionId: number;
+            /** Modelversion */
+            modelVersion: string | null;
+            /** Name */
+            name: string;
+            /** Preferredmodel */
+            preferredModel: string | null;
+            /** Preferredversionid */
+            preferredVersionId: number | null;
+            /** Prompttext */
+            promptText: string;
+            /** Runs */
+            runs: number;
+            /** Theme */
+            theme: string;
+            /** Universe */
+            universe: string;
+            /** Updatefrequency */
+            updateFrequency: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Versions */
+            versions: components["schemas"]["PromptVersionOut"][];
+            /** Weight */
+            weight: number;
+        };
         /** PromptInfo */
         PromptInfo: {
             /** Body */
@@ -4496,6 +5094,118 @@ export interface components {
         PromptList: {
             /** Prompts */
             prompts: components["schemas"]["PromptInfo"][];
+        };
+        /** PromptOut */
+        PromptOut: {
+            /** Archived */
+            archived: boolean;
+            /** Characters */
+            characters: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Description */
+            description: string;
+            /** Id */
+            id: number;
+            lastRun: components["schemas"]["RunBrief"] | null;
+            /** Latestversion */
+            latestVersion: number;
+            /** Latestversionid */
+            latestVersionId: number;
+            /** Modelversion */
+            modelVersion: string | null;
+            /** Name */
+            name: string;
+            /** Preferredmodel */
+            preferredModel: string | null;
+            /** Preferredversionid */
+            preferredVersionId: number | null;
+            /** Runs */
+            runs: number;
+            /** Theme */
+            theme: string;
+            /** Universe */
+            universe: string;
+            /** Updatefrequency */
+            updateFrequency: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Weight */
+            weight: number;
+        };
+        /**
+         * PromptPatch
+         * @description Every field optional. A changed ``prompt_text`` adds a version; the rest edit the prompt.
+         */
+        PromptPatch: {
+            /** Archived */
+            archived?: boolean | null;
+            /**
+             * Clearmodel
+             * @default false
+             */
+            clearModel: boolean;
+            /** Description */
+            description?: string | null;
+            /** Modelversion */
+            modelVersion?: string | null;
+            /** Name */
+            name?: string | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Preferredmodel */
+            preferredModel?: string | null;
+            /** Preferredversionid */
+            preferredVersionId?: number | null;
+            /** Prompttext */
+            promptText?: string | null;
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
+            /** Theme */
+            theme?: string | null;
+            /** Universe */
+            universe?: string | null;
+            /** Updatefrequency */
+            updateFrequency?: ("daily" | "weekly" | "monthly" | "quarterly") | null;
+            /** Weight */
+            weight?: number | null;
+        };
+        /** PromptVersionOut */
+        PromptVersionOut: {
+            /** Characters */
+            characters: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string;
+            /** Number */
+            number: number;
+            /** Prompttext */
+            promptText: string;
+            /** Runs */
+            runs: number;
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            } | null;
+            /** Validruns */
+            validRuns: number;
         };
         /**
          * ProvenSettings
@@ -4719,6 +5429,129 @@ export interface components {
             settings?: {
                 [key: string]: unknown;
             };
+        };
+        /** RunBrief */
+        RunBrief: {
+            /** Active */
+            active: boolean;
+            /** Correctsrunid */
+            correctsRunId: number | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Durationseconds */
+            durationSeconds: number | null;
+            /** Errorcode */
+            errorCode: string | null;
+            /** Errormessage */
+            errorMessage: string | null;
+            /** Finishedat */
+            finishedAt: string | null;
+            /** Id */
+            id: number;
+            /** Message */
+            message: string;
+            /** Modelref */
+            modelRef: string;
+            /** Positions */
+            positions: number;
+            /** Promptid */
+            promptId: number;
+            /** Promptname */
+            promptName: string;
+            /** Startedat */
+            startedAt: string | null;
+            /** Status */
+            status: string;
+            /** Usage */
+            usage: {
+                [key: string]: unknown;
+            } | null;
+            /** Valid */
+            valid: boolean | null;
+            /** Versionnumber */
+            versionNumber: number;
+        };
+        /** RunDetail */
+        RunDetail: {
+            /** Active */
+            active: boolean;
+            /** Correctsrunid */
+            correctsRunId: number | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Durationseconds */
+            durationSeconds: number | null;
+            /** Errorcode */
+            errorCode: string | null;
+            /** Errormessage */
+            errorMessage: string | null;
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceOut"][];
+            /** Finishedat */
+            finishedAt: string | null;
+            /** Id */
+            id: number;
+            /** Message */
+            message: string;
+            /** Meta */
+            meta: {
+                [key: string]: unknown;
+            };
+            /** Modelref */
+            modelRef: string;
+            /** Portfolio */
+            portfolio: components["schemas"]["PositionOut"][];
+            /** Positions */
+            positions: number;
+            /** Promptid */
+            promptId: number;
+            /** Promptname */
+            promptName: string;
+            /** Promptsnapshot */
+            promptSnapshot: string;
+            /** Rawoutput */
+            rawOutput: string | null;
+            /** Research */
+            research: {
+                [key: string]: unknown;
+            } | null;
+            /** Samplejson */
+            sampleJson: string | null;
+            /** Startedat */
+            startedAt: string | null;
+            /** Status */
+            status: string;
+            /** Usage */
+            usage: {
+                [key: string]: unknown;
+            } | null;
+            /** Valid */
+            valid: boolean | null;
+            /** Validation */
+            validation: {
+                [key: string]: unknown;
+            } | null;
+            /** Versionnumber */
+            versionNumber: number;
+        };
+        /** RunRequest */
+        RunRequest: {
+            /** Model */
+            model?: string | null;
+            /**
+             * Research
+             * @default auto
+             * @enum {string}
+             */
+            research: "off" | "auto" | "required";
+            /** Versionnumber */
+            versionNumber?: number | null;
         };
         /** SampleAlpha */
         SampleAlpha: {
@@ -5057,6 +5890,35 @@ export interface components {
             truncation: number | null;
             /** Universe */
             universe: string | null;
+        };
+        /** SpcOptions */
+        SpcOptions: {
+            /** Approaches */
+            approaches: {
+                [key: string]: string;
+            };
+            /** Defaultmodel */
+            defaultModel: string | null;
+            /** Frequencies */
+            frequencies: string[];
+            /** Limits */
+            limits: {
+                [key: string]: unknown;
+            };
+            /** Models */
+            models: components["schemas"]["ModelChoice"][];
+            /** Reference */
+            reference: {
+                [key: string]: unknown;
+            };
+            /** Research */
+            research: {
+                [key: string]: unknown;
+            };
+            /** Schemaprofile */
+            schemaProfile: {
+                [key: string]: unknown;
+            };
         };
         /** StatsItem */
         StatsItem: {
@@ -5900,6 +6762,19 @@ export interface components {
              * @description The inquiry id from the 409 that asked for a check
              */
             inquiry: string;
+        };
+        /** VersionComparison */
+        VersionComparison: {
+            a: components["schemas"]["PromptVersionOut"];
+            /** Added */
+            added: number;
+            b: components["schemas"]["PromptVersionOut"];
+            /** Characterchange */
+            characterChange: number;
+            /** Lines */
+            lines: components["schemas"]["DiffLine"][];
+            /** Removed */
+            removed: number;
         };
         /** Windows */
         Windows: {
@@ -8435,6 +9310,547 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CancelResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_prompts_api_spc_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerationOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Generated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    options_api_spc_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpcOptions"];
+                };
+            };
+        };
+    };
+    run_overlap_api_spc_overlap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverlapRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overlap"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_prompts_api_spc_prompts_get: {
+        parameters: {
+            query?: {
+                archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_prompt_api_spc_prompts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromptCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_prompt_api_spc_prompts__prompt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prompt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_prompt_api_spc_prompts__prompt_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prompt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromptPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_versions_api_spc_prompts__prompt_id__compare_get: {
+        parameters: {
+            query: {
+                a: number;
+                b: number;
+            };
+            header?: never;
+            path: {
+                prompt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionComparison"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    duplicate_prompt_api_spc_prompts__prompt_id__duplicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prompt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_prompt_api_spc_prompts__prompt_id__export_get: {
+        parameters: {
+            query?: {
+                run_id?: number | null;
+            };
+            header?: never;
+            path: {
+                prompt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_prompt_api_spc_prompts__prompt_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prompt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_version_api_spc_prompts__prompt_id__versions__number__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prompt_id: number;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_runs_api_spc_runs_get: {
+        parameters: {
+            query?: {
+                prompt_id?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunBrief"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_api_spc_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_analytics_api_spc_runs__run_id__analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Analytics"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_run_api_spc_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    correct_run_api_spc_runs__run_id__correct_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
                 };
             };
             /** @description Validation Error */

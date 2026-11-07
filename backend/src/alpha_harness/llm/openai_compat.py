@@ -8,7 +8,7 @@ import asyncio
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from openai import APIStatusError, AsyncOpenAI, omit
+from openai import APIStatusError, AsyncOpenAI, Omit, omit
 
 if TYPE_CHECKING:
     import httpx2
@@ -51,24 +51,30 @@ class OpenAICompatible:
         temperature: float | None,
         schema: dict[str, Any] | None,
         reasoning_effort: ReasoningEffort = None,
+        plain: bool = False,
     ) -> tuple[str, dict[str, Any]]:
         """One completion as JSON: its text, and the ``usage`` the provider reported.
 
         ``schema`` holds the answer to it; without one only a JSON object is asked for. Not
         every provider honours either, which is why the callers also ask for JSON in the
         prompt itself and parse defensively. A 503 is sent again after a short wait.
+
+        ``plain`` sends no ``response_format`` at all, for an answer that is not a JSON object
+        (SPC needs a top-level array, which both modes above would refuse or wrap).
         """
         for wait in OVERLOADED_WAITS:
             try:
                 return await self._complete(
-                    model, system, user, temperature, schema, reasoning_effort
+                    model, system, user, temperature, schema, reasoning_effort, plain
                 )
             except ProviderError as exc:
                 if exc.status != 503:
                     raise
             log.info("llm.overloaded", model=model, wait=wait)
             await asyncio.sleep(wait)
-        return await self._complete(model, system, user, temperature, schema, reasoning_effort)
+        return await self._complete(
+            model, system, user, temperature, schema, reasoning_effort, plain
+        )
 
     async def _complete(
         self,
@@ -78,16 +84,23 @@ class OpenAICompatible:
         temperature: float | None,
         schema: dict[str, Any] | None,
         reasoning_effort: ReasoningEffort,
+        plain: bool = False,
     ) -> tuple[str, dict[str, Any]]:
-        messages: list[ChatCompletionMessageParam] = [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ]
-        response_format: ResponseFormat = (
-            {"type": "json_schema", "json_schema": {"name": "answer", "schema": schema}}
-            if schema is not None
-            else {"type": "json_object"}
-        )
+        messages: list[ChatCompletionMessageParam] = [{"role": "user", "content": user}]
+        if system or not plain:
+            # Every existing caller keeps its system message exactly as before. Only a plain
+            # request with none (SPC's prompt is the whole instruction) sends no empty one.
+            messages.insert(0, {"role": "system", "content": system})
+        response_format: ResponseFormat | Omit
+        if plain:
+            response_format = omit
+        elif schema is not None:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {"name": "answer", "schema": schema},
+            }
+        else:
+            response_format = {"type": "json_object"}
         try:
             completion = await self._sdk.chat.completions.create(
                 model=model,
