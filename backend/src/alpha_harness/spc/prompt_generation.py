@@ -8,7 +8,7 @@ character limit, dropping optional detail before it would cut the output instruc
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from ..schemas import Out
 from .schema import DEFAULT_TARGET_EQUITIES, FREQUENCIES, PROFILE, PROMPT_MAX_CHARS
@@ -63,7 +63,7 @@ APPROACHES: dict[str, tuple[str, str]] = {
 }
 
 
-class GenerationOptions(BaseModel):
+class GenerationOptions(Out):
     """What Prompt Studio asks for. Every field has a default, so a thesis alone is enough."""
 
     thesis: str = Field(min_length=1, max_length=4000)

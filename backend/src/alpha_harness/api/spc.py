@@ -8,8 +8,9 @@ a simulation slot.
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from ..schemas import Out
 from ..spc.errors import SpcConflictError, SpcError, SpcInvalidError, SpcNotFoundError
 from ..spc.prompt_generation import GenerationOptions, PromptCandidate, generate
 from ..spc.views import (
@@ -41,11 +42,11 @@ def _refused(exc: SpcError) -> Exception:
     return refuse(_STATUS.get(type(exc), 400), exc.code, str(exc))
 
 
-class OverlapRequest(BaseModel):
+class OverlapRequest(Out):
     run_ids: list[int] = Field(min_length=2, max_length=10)
 
 
-class Generated(BaseModel):
+class Generated(Out):
     candidates: list[PromptCandidate]
 
 
