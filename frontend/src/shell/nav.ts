@@ -8,6 +8,7 @@ import {
   ListChecksIcon,
   RefreshCwIcon,
   SparklesIcon,
+  TargetIcon,
   TriangleIcon,
   TrophyIcon,
   WrenchIcon,
@@ -46,6 +47,13 @@ export const TOOL_TABS = [
   { tab: 'correlation-breaker', label: 'Correlation Breaker', to: '/tools/correlation-breaker' },
   { tab: 'fields-sampler', label: 'Fields Sampler', to: '/tools/fields-sampler' },
   { tab: 'paste-alphas', label: 'Paste Alphas', to: '/tools/paste-alphas' },
+] as const
+
+export const SPC_TABS = [
+  { tab: 'studio', label: 'Prompt Studio' },
+  { tab: 'runs', label: 'Test Runs' },
+  { tab: 'analytics', label: 'Portfolio Analytics' },
+  { tab: 'export', label: 'Submission Export' },
 ] as const
 
 /** `group` heads a run of items in the sidebar; empty sits above every heading. An item's
@@ -119,6 +127,13 @@ export const NAV = [
     group: 'BRAIN',
     label: 'Sync',
     icon: RefreshCwIcon,
+  },
+  {
+    to: '/spc',
+    group: 'BRAIN',
+    label: 'SPC Research Lab',
+    icon: TargetIcon,
+    tabs: SPC_TABS,
   },
   {
     to: '/ai',

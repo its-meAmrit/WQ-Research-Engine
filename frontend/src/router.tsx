@@ -215,6 +215,28 @@ const pyramids = createRoute({
   component: lazyRouteComponent(() => import('@/screens/pyramids'), 'PyramidsScreen'),
 })
 
+const spc = createRoute({
+  getParentRoute: () => root,
+  path: '/spc',
+  component: lazyRouteComponent(() => import('@/screens/spc'), 'SpcScreen'),
+})
+const spcIndex = createRoute({
+  getParentRoute: () => spc,
+  path: '/',
+  beforeLoad: () => {
+    throw redirect({ to: '/spc/$tab', params: { tab: 'studio' } })
+  },
+})
+// The screen belongs to ``/spc``; the tab route only carries the params it reads, like ``/ai``.
+const spcTab = createRoute({
+  getParentRoute: () => spc,
+  path: '$tab',
+  validateSearch: (search: Record<string, unknown>): { prompt?: number; run?: number } => ({
+    ...(typeof search['prompt'] === 'number' ? { prompt: search['prompt'] } : {}),
+    ...(typeof search['run'] === 'number' ? { run: search['run'] } : {}),
+  }),
+})
+
 const routeTree = root.addChildren([
   index,
   dashboard,
@@ -230,6 +252,7 @@ const routeTree = root.addChildren([
   ai.addChildren([aiIndex, aiTab, aiThread]),
   pyramids,
   sync,
+  spc.addChildren([spcIndex, spcTab]),
 ])
 
 /** A screen that throws says so instead of going blank (CLAUDE.md anti-goal 3), and offers
