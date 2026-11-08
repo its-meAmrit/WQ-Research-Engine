@@ -318,7 +318,7 @@ def _assistant_headline(enabled: int, models: int, remaining: int) -> str:
         )
     if models == 0:
         return (
-            "The assistant has a key but no model. Set one up in LLM Integration, with the "
+            "The assistant has a key but no model. Set one up in API Integration, with the "
             "limits your provider shows you."
         )
     if remaining <= 0:

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNow } from '@/lib/now'
-import { llm } from '@/screens/ai/api'
+import { llm, web } from '@/screens/ai/api'
 
 export const useKeys = (refetchInterval: number | false = false) =>
   useQuery({ queryKey: ['ai', 'keys'], queryFn: llm.keys, refetchInterval })
@@ -10,6 +10,18 @@ export const useProviders = () =>
     queryFn: llm.providers,
     staleTime: 10 * 60 * 1000,
   })
+export const useWebResearch = () => useQuery({ queryKey: ['ai', 'web'], queryFn: web.status })
+
+/** After a web research key, its on/off state or the default changes: this screen, and SPC's
+ *  idea of whether research is set up. */
+export function useInvalidateWeb() {
+  const queryClient = useQueryClient()
+  return () => {
+    void queryClient.invalidateQueries({ queryKey: ['ai', 'web'] })
+    void queryClient.invalidateQueries({ queryKey: ['spc', 'options'] })
+  }
+}
+
 export const useModels = () => useQuery({ queryKey: ['ai', 'models'], queryFn: llm.models })
 
 /**

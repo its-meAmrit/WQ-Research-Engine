@@ -284,7 +284,7 @@ class ChatService:
         if not lines:
             raise ValueError(
                 "The model's Max Prompt Tokens leave no room for a single field. Raise it "
-                "under LLM Integration › Models."
+                "under API Integration › Models."
             )
         note = None
         if int(page["total"]) > len(lines):

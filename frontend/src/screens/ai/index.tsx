@@ -1,6 +1,8 @@
 /**
- * LLM Integration (CLAUDE.md §4.6), provider first: until a key exists the page is only the
- * provider grid, and only then do the tabs appear (`/ai/$tab`, `/ai/assistant/$threadId`).
+ * API Integration (CLAUDE.md §4.6): the LLM services (providers, keys, models, budget, prompts,
+ * assistant) and the web research services (Tavily, Brave Search). LLM first: until an LLM key
+ * exists the LLM tabs are only the provider grid; Web Research needs no LLM key, so it is always
+ * there. Routes stay `/ai/$tab` and `/ai/assistant/$threadId`, so every old link keeps working.
  */
 
 import { Link, Navigate, useParams } from '@tanstack/react-router'
@@ -23,9 +25,10 @@ import { Models } from './models'
 import { Prompts } from './prompts'
 import { Providers } from './providers'
 import { useKeys } from './shared'
+import { WebResearch } from './web'
 
 const SCREENS = { keys: Keys, models: Models, budget: Budget } as const
-const KEYLESS = new Set(['providers', 'prompts'])
+const KEYLESS = new Set(['providers', 'prompts', 'web'])
 
 export function AiScreen() {
   const params = useParams({ strict: false })
@@ -46,7 +49,10 @@ export function AiScreen() {
       {keys.isSuccess && !hasKeys && !KEYLESS.has(tab ?? '') && (
         <Navigate to="/ai/$tab" params={{ tab: 'providers' }} replace />
       )}
-      <PageHeader title="LLM Integration" />
+      <PageHeader
+        title="API Integration"
+        description="LLM services answer for the assistant and the labs. Web research services look up current sources for SPC. Keys stay on this computer, encrypted."
+      />
       {keys.isError && <ErrorNotice title="Could not load the Keys" error={keys.error} />}
       {keys.isSuccess && (
         <TabBar>
@@ -59,6 +65,8 @@ export function AiScreen() {
       )}
       {keys.isPending ? (
         <Skeleton className="h-64" />
+      ) : tab === 'web' ? (
+        <WebResearch />
       ) : tab === 'prompts' ? (
         <Prompts />
       ) : !hasKeys || tab === 'providers' ? (

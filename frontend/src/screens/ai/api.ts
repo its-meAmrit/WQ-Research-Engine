@@ -103,6 +103,33 @@ export const llm = {
   prompts: () => http.get<Schemas['PromptList']>('/api/llm/prompts'),
 }
 
+export type WebResearchStatus = Schemas['WebResearchStatus']
+export type WebProvider = Schemas['WebProviderStatus']
+export type WebProviderId = WebProvider['id']
+export type WebCheck = Schemas['CheckWorks'] | Schemas['CheckFailed']
+
+/**
+ * Web research services (Tavily, Brave Search): not language models, so separate from `llm`.
+ * Bodies are camelCase here, like SPC's. Keys never come back, only `hint`.
+ */
+export const web = {
+  status: () => http.get<WebResearchStatus>('/api/integrations/web'),
+  /** Stores a key, or replaces the service's one. 422 invalid_key, 409 duplicate_key. */
+  putKey: (id: WebProviderId, key: string, dailyRequestBudget?: number) =>
+    http.put<WebProvider>(`/api/integrations/web/providers/${id}/key`, {
+      key,
+      dailyRequestBudget,
+    }),
+  update: (id: WebProviderId, body: { enabled?: boolean; dailyRequestBudget?: number }) =>
+    http.patch<WebProvider>(`/api/integrations/web/providers/${id}`, body),
+  removeKey: (id: WebProviderId) => http.del<void>(`/api/integrations/web/providers/${id}/key`),
+  /** May spend a credit: send `acknowledgeCost` only after the user has seen the cost. */
+  check: (id: WebProviderId, acknowledgeCost: boolean) =>
+    http.post<WebCheck>(`/api/integrations/web/providers/${id}/check`, { acknowledgeCost }),
+  setPreferred: (provider: WebProviderId | null) =>
+    http.put<WebResearchStatus>('/api/integrations/web/preferred', { provider }),
+}
+
 export const chat = {
   options: () => http.get<ChatOptions>('/api/chat/options'),
   threads: (limit = 30) => http.get<ChatThreadSummary[]>(`/api/chat/threads${qs({ limit })}`),

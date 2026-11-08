@@ -27,6 +27,7 @@ export const AI_TABS = [
   { tab: 'budget', label: 'Budget' },
   { tab: 'prompts', label: 'Prompts' },
   { tab: 'assistant', label: 'Assistant' },
+  { tab: 'web', label: 'Web Research' },
 ] as const
 
 /** The labs, each with its own route. Listed on the Research Labs screen and in ⌘K rather
@@ -138,7 +139,7 @@ export const NAV = [
   {
     to: '/ai',
     group: 'Setup',
-    label: 'LLM Integration',
+    label: 'API Integration',
     icon: SparklesIcon,
     tabs: AI_TABS,
   },

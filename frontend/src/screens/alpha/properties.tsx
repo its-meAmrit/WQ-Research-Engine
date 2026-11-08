@@ -88,11 +88,11 @@ function useWriterBlocked(): string | null | undefined {
   if (!ready || preferences.isPending) return undefined
   const chosen = preferences.data?.descriptionModel
   if (runnable.length === 0)
-    return 'Write with AI is off: none of your Keys can run a model. Add a Key, and set up a model for it, under LLM Integration.'
+    return 'Write with AI is off: none of your Keys can run a model. Add a Key, and set up a model for it, under API Integration.'
   if (chosen && !all.some((m) => m.ref === chosen))
     return 'Write with AI is off: the model chosen in Settings › Alphas is no longer set up. Choose another one there.'
   if (chosen && !runnable.some((m) => m.ref === chosen))
-    return 'Write with AI is off: the model chosen in Settings › Alphas has no enabled Key. Enable one under LLM Integration, or choose another model.'
+    return 'Write with AI is off: the model chosen in Settings › Alphas has no enabled Key. Enable one under API Integration, or choose another model.'
   return null
 }
 

@@ -15,12 +15,14 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 SPC_TABLES = {"spc_prompt", "spc_prompt_version", "spc_run", "spc_position", "spc_evidence"}
+WEB_TABLES = {"integration_credential", "integration_usage"}
+NEW_TABLES = SPC_TABLES | WEB_TABLES
 
 
 def build_old_database(path: Path) -> None:
     """The schema as it was before SPC: every table but the new ones, filled with real rows."""
     engine = create_engine(f"sqlite:///{path}")
-    old = [t for t in Base.metadata.sorted_tables if t.name not in SPC_TABLES]
+    old = [t for t in Base.metadata.sorted_tables if t.name not in NEW_TABLES]
     Base.metadata.create_all(engine, tables=old)
     engine.dispose()
     # Through the ORM, so every required column and default is filled the way the app does.
@@ -59,15 +61,15 @@ def table_names(path: Path) -> set[str]:
 async def test_old_database_gains_spc_tables_and_keeps_every_row(tmp_path: Path) -> None:
     path = tmp_path / "harness.db"
     build_old_database(path)
-    assert not SPC_TABLES & table_names(path)
-    existing = [t.name for t in Base.metadata.sorted_tables if t.name not in SPC_TABLES]
+    assert not NEW_TABLES & table_names(path)
+    existing = [t.name for t in Base.metadata.sorted_tables if t.name not in NEW_TABLES]
     before = snapshot(path, existing)
     assert len(before["preference"][1]) == 2
 
     db = Database(path)
     await db.create_all()
     try:
-        assert table_names(path) >= SPC_TABLES
+        assert table_names(path) >= NEW_TABLES
         # Existing tables: identical columns and identical rows.
         assert snapshot(path, existing) == before
 
@@ -113,3 +115,30 @@ async def test_deleting_a_prompt_row_cascades_only_its_own_history(tmp_path: Pat
         raw.execute("DELETE FROM spc_prompt WHERE id = ?", (a.id,))
         left = raw.execute("SELECT prompt_id FROM spc_prompt_version").fetchall()
     assert left == [(b.id,)]
+
+
+async def test_web_research_keys_survive_a_restart_on_a_migrated_database(tmp_path: Path) -> None:
+    """The web service tables arrive on an old database, a key stored in them is still there
+    after a restart, and the LLM key tables and rows are not touched."""
+    from alpha_harness.integrations.service import WebResearchService
+    from alpha_harness.sealing import Sealer
+
+    path = tmp_path / "harness.db"
+    build_old_database(path)
+    llm_before = snapshot(path, ["llm_model", "preference"])
+    sealer = Sealer(tmp_path / "key")
+
+    db = Database(path)
+    await db.create_all()
+    await WebResearchService(db, sealer, env={}).store.put("tavily", "tvly-dev-0123456789abcdef")
+    await db.dispose()
+
+    again = Database(path)
+    await again.create_all()
+    try:
+        store = WebResearchService(again, Sealer(tmp_path / "key"), env={}).store
+        assert await store.secret("tavily") == "tvly-dev-0123456789abcdef"
+    finally:
+        await again.dispose()
+    assert snapshot(path, ["llm_model"])["llm_model"] == llm_before["llm_model"]
+    assert "tvly-dev-0123456789abcdef" not in "\n".join(sqlite3.connect(path).iterdump())

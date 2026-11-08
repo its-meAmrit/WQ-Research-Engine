@@ -166,7 +166,7 @@ class LLMService:
     async def runnable(self) -> list[dict[str, Any]]:
         """Set-up models whose provider has an enabled Key, most requests left today first.
 
-        A model set up without such a Key is listed under LLM Integration but cannot answer,
+        A model set up without such a Key is listed under API Integration but cannot answer,
         so nothing that sends a request offers it.
         """
         status = await self.keys.status(self.registry)
@@ -188,11 +188,11 @@ class LLMService:
         if not ref:
             models = self.registry.all()
             if not models:
-                raise LLMError("No model is set up yet. Set one up under LLM Integration › Models.")
+                raise LLMError("No model is set up yet. Set one up under API Integration › Models.")
             return models[0]
         model = self.registry.get(ref)
         if model is None:
-            raise LLMError(f"{ref} is not set up. Set it up under LLM Integration › Models.")
+            raise LLMError(f"{ref} is not set up. Set it up under API Integration › Models.")
         return model
 
     # -- the one call ----------------------------------------------------

@@ -63,6 +63,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from ..db.sqlite import Database
+    from ..integrations.service import WebResearchService
     from ..llm.service import LLMService
     from ..tasks import TaskRegistry
 
@@ -105,11 +106,13 @@ class SpcService:
         data_dir: Path,
         tasks: TaskRegistry | None = None,
         runner: SpcRunner | None = None,
+        web: WebResearchService | None = None,
     ) -> None:
         self.db = db
         self.llm = llm
         self.data_dir = data_dir
-        self.runner = runner or SpcRunner(db, llm, data_dir, tasks)
+        self.web = web
+        self.runner = runner or SpcRunner(db, llm, data_dir, tasks, web=web)
 
     # -- lifecycle -------------------------------------------------------
 
@@ -131,7 +134,7 @@ class SpcService:
             default_model=models[0]["ref"] if models else None,
             frequencies=list(FREQUENCIES),
             approaches={key: label for key, (label, _) in APPROACHES.items()},
-            research=research.status(),
+            research=await self.web.research_status() if self.web else research.status(),
             limits={
                 "promptMaxChars": PROMPT_MAX_CHARS,
                 "modelVersionMaxChars": MODEL_VERSION_MAX_CHARS,
@@ -555,7 +558,7 @@ class SpcService:
             return None
         info = self.llm.registry.get(ref.strip())
         if info is None:
-            raise LLMError(f"{ref} is not set up. Set it up under LLM Integration › Models.")
+            raise LLMError(f"{ref} is not set up. Set it up under API Integration › Models.")
         return info.ref
 
     async def _brief(self, session: AsyncSession, run: SpcRun) -> RunBrief:

@@ -6,9 +6,12 @@ the results are normalised, dated and screened, and the text is handed to the mo
 date it was retrieved. Nothing is retrieved on the model's behalf and nothing is claimed that
 was not.
 
-**Configuration.** Set ``ALPHA_HARNESS_SPC_SEARCH`` to ``brave`` or ``tavily`` and
-``ALPHA_HARNESS_SPC_SEARCH_KEY`` to that service's key, then restart. Without them research is
-reported as not configured and a run may still go ahead without it, saying so.
+**Configuration.** Add a Tavily or Brave Search key under API Integration › Web Research. The
+service that applies is the user's enabled stored key; failing that, the older
+``ALPHA_HARNESS_SPC_SEARCH`` / ``ALPHA_HARNESS_SPC_SEARCH_KEY`` environment variables; failing
+that, research is reported as not configured and a run may still go ahead without it, saying so.
+The adapters, the keys and the budget live in :mod:`..integrations`; this module is the research
+*step*: what to ask, and what to do with the answers.
 
 **What is fetched.** Only the provider's own fixed endpoint. This build never downloads the
 pages the results name, so there is no server-side fetch of an arbitrary URL to turn against
@@ -17,17 +20,21 @@ because they are shown and stored, and a link to a private address has no place 
 """
 
 import asyncio
-import ipaddress
-import os
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
 import httpx2
 import structlog
 
+from ..integrations import legacy
+from ..integrations.base import SearchProvider, safe_public_url
+from ..integrations.brave import BraveSearch
+from ..integrations.errors import IntegrationError
+from ..integrations.legacy import ENV_KEY, ENV_PROVIDER, SETUP_HELP
+from ..integrations.tavily import TavilySearch
 from .errors import SpcError
 
 if TYPE_CHECKING:
@@ -44,14 +51,17 @@ MAX_SOURCES = 18
 #: Evidence older than this is marked stale unless the prompt asked for something else.
 DEFAULT_MAX_AGE_DAYS = 90
 
-ENV_PROVIDER = "ALPHA_HARNESS_SPC_SEARCH"
-ENV_KEY = "ALPHA_HARNESS_SPC_SEARCH_KEY"
-
-SETUP_HELP = (
-    f"Set {ENV_PROVIDER} to 'brave' or 'tavily' and {ENV_KEY} to that service's API key, "
-    "then restart Alpha Harness. Without it a run can still go ahead, but only on the model's "
-    "own knowledge, which is not current."
-)
+#: Re-exported: the legacy environment variables and the setup message live in
+#: :mod:`..integrations.legacy`, beside the code that reads them.
+__all__ = [
+    "ENV_KEY",
+    "ENV_PROVIDER",
+    "SETUP_HELP",
+    "BraveSearch",
+    "SearchProvider",
+    "TavilySearch",
+    "safe_public_url",
+]
 
 
 class ResearchNotConfiguredError(SpcError):
@@ -111,37 +121,6 @@ class ResearchResult:
 
 
 # --- URLs -------------------------------------------------------------------------------
-
-
-def safe_public_url(url: str) -> str | None:
-    """The URL if it is a plain http(s) link to a public host, else ``None``.
-
-    Refuses other schemes, embedded credentials, ``localhost``-style names, names without a dot
-    and any literal address that is private, loopback, link-local, reserved or multicast.
-    """
-    try:
-        parts = urlsplit(url.strip())
-        host = (parts.hostname or "").lower()
-    except ValueError:
-        return None
-    if parts.scheme not in {"http", "https"} or not host or parts.username or parts.password:
-        return None
-    if host == "localhost" or host.endswith((".localhost", ".local", ".internal", ".lan")):
-        return None
-    try:
-        address = ipaddress.ip_address(host)
-    except ValueError:
-        return url.strip() if "." in host else None
-    if (
-        address.is_private
-        or address.is_loopback
-        or address.is_link_local
-        or address.is_reserved
-        or address.is_multicast
-        or address.is_unspecified
-    ):
-        return None
-    return url.strip()
 
 
 _TYPES: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -212,124 +191,34 @@ def parse_published(value: object, *, now: datetime) -> datetime | None:
 # --- providers --------------------------------------------------------------------------
 
 
-class SearchProvider(Protocol):
-    name: str
-
-    async def search(
-        self, client: httpx2.AsyncClient, query: str, *, count: int, freshness_days: int
-    ) -> list[dict[str, Any]]:
-        """Raw results as ``{url, title, snippet, published}`` dicts."""
-        ...
-
-
-def _refusal(name: str, response: httpx2.Response) -> ResearchFailedError:
-    # Never the request: its headers hold the key.
-    status = response.status_code
-    if status in {401, 403}:
-        return ResearchFailedError(f"{name} refused the search key. Check {ENV_KEY}.")
-    if status == 429:
-        return ResearchFailedError(f"{name} is rate limiting searches. Try again shortly.")
-    return ResearchFailedError(f"{name} answered {status}.")
-
-
-@dataclass(slots=True)
-class BraveSearch:
-    key: str
-    name: str = "brave"
-
-    async def search(
-        self, client: httpx2.AsyncClient, query: str, *, count: int, freshness_days: int
-    ) -> list[dict[str, Any]]:
-        freshness = (
-            "pd"
-            if freshness_days <= 1
-            else "pw"
-            if freshness_days <= 7
-            else "pm"
-            if freshness_days <= 31
-            else "py"
-        )
-        response = await client.get(
-            "https://api.search.brave.com/res/v1/web/search",
-            params={"q": query, "count": count, "freshness": freshness},
-            headers={"X-Subscription-Token": self.key, "Accept": "application/json"},
-        )
-        if response.status_code != 200:
-            raise _refusal("Brave Search", response)
-        found = (response.json().get("web") or {}).get("results") or []
-        return [
-            {
-                "url": r.get("url", ""),
-                "title": r.get("title", ""),
-                "snippet": r.get("description", ""),
-                "published": r.get("page_age") or r.get("age"),
-            }
-            for r in found
-            if isinstance(r, dict)
-        ]
-
-
-@dataclass(slots=True)
-class TavilySearch:
-    key: str
-    name: str = "tavily"
-
-    async def search(
-        self, client: httpx2.AsyncClient, query: str, *, count: int, freshness_days: int
-    ) -> list[dict[str, Any]]:
-        response = await client.post(
-            "https://api.tavily.com/search",
-            json={
-                "query": query,
-                "max_results": count,
-                "topic": "news" if freshness_days <= 31 else "general",
-                "days": freshness_days,
-                "include_answer": False,
-            },
-            headers={"Authorization": f"Bearer {self.key}"},
-        )
-        if response.status_code != 200:
-            raise _refusal("Tavily", response)
-        found = response.json().get("results") or []
-        return [
-            {
-                "url": r.get("url", ""),
-                "title": r.get("title", ""),
-                "snippet": r.get("content", ""),
-                "published": r.get("published_date"),
-            }
-            for r in found
-            if isinstance(r, dict)
-        ]
-
-
 def configured_provider(env: Mapping[str, str] | None = None) -> SearchProvider | None:
-    """The provider the environment names, or ``None``. An unknown name is not guessed at."""
-    env = os.environ if env is None else env
-    name = (env.get(ENV_PROVIDER) or "").strip().lower()
-    key = (env.get(ENV_KEY) or "").strip()
-    if not name or not key:
+    """The provider the *legacy environment* names, or ``None``. An unknown name is not guessed at.
+
+    Only the environment: a key stored in the application is resolved by
+    :class:`~..integrations.service.WebResearchService`, which falls back to this.
+    """
+    config = legacy.read(env)
+    if config is None or not config.named or not config.key:
         return None
-    if name == "brave":
-        return BraveSearch(key)
-    if name == "tavily":
-        return TavilySearch(key)
-    log.warning("spc.search_provider_unknown", name=name)
-    return None
+    if config.provider is None:
+        log.warning("spc.search_provider_unknown", name=config.named)
+        return None
+    return BraveSearch(config.key) if config.provider == "brave" else TavilySearch(config.key)
 
 
 def status(env: Mapping[str, str] | None = None) -> dict[str, Any]:
-    """What the UI shows about research: configured or not, and how to fix it."""
-    env = os.environ if env is None else env
+    """What the UI shows about research from the legacy environment alone: configured or not,
+    and how to fix it. The application's own status, which also knows about stored keys, is
+    ``WebResearchService.research_status``; this is what an SPC service built without one shows."""
     provider = configured_provider(env)
-    named = (env.get(ENV_PROVIDER) or "").strip()
     if provider is not None:
         return {"configured": True, "provider": provider.name, "help": None}
-    if named and named.lower() not in {"brave", "tavily"}:
+    config = legacy.read(env)
+    if config is not None and config.named and config.provider is None:
         return {
             "configured": False,
             "provider": None,
-            "help": f"{named!r} is not a search provider here; use 'brave' or 'tavily'.",
+            "help": f"{config.named!r} is not a search provider here; use 'brave' or 'tavily'.",
         }
     return {"configured": False, "provider": None, "help": SETUP_HELP}
 
@@ -402,7 +291,8 @@ async def gather(
                     return await provider.search(
                         client, query, count=RESULTS_PER_QUERY, freshness_days=max_age_days
                     )
-                except ResearchFailedError as exc:
+                except (ResearchFailedError, IntegrationError) as exc:
+                    # Typed and key-free: built from the service's name and an HTTP status.
                     return str(exc)
                 except httpx2.TransportError as exc:
                     return f"{provider.name} could not be reached ({type(exc).__name__})."

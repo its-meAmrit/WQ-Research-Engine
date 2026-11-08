@@ -168,7 +168,7 @@ export function PowerPoolLabScreen() {
             </Button>
           }
         >
-          Add a Key in LLM Integration and set up a model for it, with the limits your provider
+          Add a Key in API Integration and set up a model for it, with the limits your provider
           shows you.
         </Notice>
       )}

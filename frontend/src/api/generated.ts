@@ -839,6 +839,133 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/integrations/web": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status
+         * @description Every service, whether it has a key, how it last fared, and which one a search uses.
+         */
+        get: operations["status_api_integrations_web_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/web/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract
+         * @description Page text for up to 20 public URLs, fetched by the service. Spends credits there.
+         */
+        post: operations["extract_api_integrations_web_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/web/preferred": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Preferred
+         * @description Choose which service searches use when more than one has an enabled key.
+         */
+        put: operations["set_preferred_api_integrations_web_preferred_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/web/providers/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Provider
+         * @description Turn a service on or off, or move its daily budget. Omitted fields are left alone.
+         */
+        patch: operations["update_provider_api_integrations_web_providers__provider__patch"];
+        trace?: never;
+    };
+    "/api/integrations/web/providers/{provider}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check
+         * @description Test a stored key against the service. Counts as a request, and may cost a credit.
+         */
+        post: operations["check_api_integrations_web_providers__provider__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations/web/providers/{provider}/key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Key
+         * @description Store a key for a service, or replace the one it has.
+         *
+         *     The key is checked for shape only. Whether the service accepts it is what the connectivity
+         *     test is for, because that may cost a credit and so is the user's to start.
+         */
+        put: operations["put_key_api_integrations_web_providers__provider__key_put"];
+        post?: never;
+        /**
+         * Remove Key
+         * @description Delete a service's key and its usage count. Saved runs and their evidence stay.
+         */
+        delete: operations["remove_key_api_integrations_web_providers__provider__key_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lab-tasks": {
         parameters: {
             query?: never;
@@ -2576,6 +2703,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActiveResearch */
+        ActiveResearch: {
+            /** Configured */
+            configured: boolean;
+            /** Help */
+            help: string | null;
+            /** Label */
+            label: string | null;
+            /** Message */
+            message: string | null;
+            /** Provider */
+            provider: ("tavily" | "brave") | null;
+            /** Source */
+            source: ("store" | "environment") | null;
+        };
         /** AddKey */
         AddKey: {
             /**
@@ -3335,11 +3477,62 @@ export interface components {
              */
             status: "pass" | "warn" | "fail";
         };
+        /** CheckCostInfo */
+        CheckCostInfo: {
+            /** Description */
+            description: string;
+            /** Mayconsumecredit */
+            mayConsumeCredit: boolean;
+        };
+        /** CheckFailed */
+        CheckFailed: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+            /**
+             * Ok
+             * @constant
+             */
+            ok: false;
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "tavily" | "brave";
+            /** Retryafter */
+            retryAfter: number | null;
+        };
+        /** CheckRequest */
+        CheckRequest: {
+            /**
+             * Acknowledgecost
+             * @description The user has seen what the test may cost. Without it, a test that may spend a credit is refused with 409 confirmation_required.
+             * @default false
+             */
+            acknowledgeCost: boolean;
+        };
         /**
          * CheckResult
          * @enum {string}
          */
         CheckResult: "PASS" | "FAIL" | "PENDING" | "WARNING" | "ERROR";
+        /** CheckWorks */
+        CheckWorks: {
+            /** Detail */
+            detail: string;
+            /**
+             * Ok
+             * @constant
+             */
+            ok: true;
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "tavily" | "brave";
+            reported: components["schemas"]["ReportedUsageInfo"] | null;
+        };
         /** Competition */
         Competition: {
             /** Enddate */
@@ -3700,6 +3893,48 @@ export interface components {
             schemaVerified: boolean;
             /** Versionnumber */
             versionNumber: number | null;
+        };
+        /** ExtractRequest */
+        ExtractRequest: {
+            /**
+             * Depth
+             * @default basic
+             * @enum {string}
+             */
+            depth: "basic" | "advanced";
+            /**
+             * Urls
+             * @description Public http(s) pages
+             */
+            urls: string[];
+        };
+        /** ExtractResponse */
+        ExtractResponse: {
+            /** Failed */
+            failed: components["schemas"]["FailedExtraction"][];
+            /** Pages */
+            pages: components["schemas"]["ExtractedPageInfo"][];
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "tavily" | "brave";
+        };
+        /** ExtractedPageInfo */
+        ExtractedPageInfo: {
+            /** Content */
+            content: string;
+            /** Truncated */
+            truncated: boolean;
+            /** Url */
+            url: string;
+        };
+        /** FailedExtraction */
+        FailedExtraction: {
+            /** Reason */
+            reason: string;
+            /** Url */
+            url: string;
         };
         /** Failure */
         Failure: {
@@ -4283,6 +4518,34 @@ export interface components {
         LeftOut: {
             /** Vector */
             vector: number;
+        };
+        /** LegacyEnvironment */
+        LegacyEnvironment: {
+            /** Inuse */
+            inUse: boolean;
+            /** Note */
+            note: string | null;
+            /** Present */
+            present: boolean;
+            /** Provider */
+            provider: ("tavily" | "brave") | null;
+            /** Usable */
+            usable: boolean;
+        };
+        /** LocalUsage */
+        LocalUsage: {
+            /** Dailybudget */
+            dailyBudget: number;
+            /** Day */
+            day: string;
+            /** Note */
+            note: string;
+            /** Remainingtoday */
+            remainingToday: number;
+            /** Requests */
+            requests: number;
+            /** Resetsinseconds */
+            resetsInSeconds: number;
         };
         /**
          * LoginRequest
@@ -4932,6 +5195,14 @@ export interface components {
              */
             updateCheckHours: 0 | 1 | 6 | 24;
         };
+        /** PreferredBody */
+        PreferredBody: {
+            /**
+             * Provider
+             * @description The service to prefer, or null to use the built-in order.
+             */
+            provider: ("tavily" | "brave") | null;
+        };
         /** Preview */
         Preview: {
             fields: components["schemas"]["FieldCounts"];
@@ -5228,6 +5499,19 @@ export interface components {
             /** Swaps */
             swaps: components["schemas"]["SwapCount"][];
         };
+        /** PutKey */
+        PutKey: {
+            /**
+             * Dailyrequestbudget
+             * @description Most requests per UTC day this app may send with the key.
+             */
+            dailyRequestBudget?: number | null;
+            /**
+             * Key
+             * @description The service's API key. Sealed; never returned.
+             */
+            key: string;
+        };
         /** PyramidCategory */
         PyramidCategory: {
             /** Id */
@@ -5419,6 +5703,24 @@ export interface components {
             total: number;
             /** Universes */
             universes: string[];
+        };
+        /**
+         * ReportedUsageInfo
+         * @description What the provider said, as of ``checked_at``. A different thing from :class:`LocalUsage`.
+         */
+        ReportedUsageInfo: {
+            /** Checkedat */
+            checkedAt: string;
+            /** Limit */
+            limit: number | null;
+            /** Period */
+            period: string | null;
+            /** Plan */
+            plan: string | null;
+            /** Remaining */
+            remaining: number | null;
+            /** Used */
+            used: number | null;
         };
         /**
          * ResolveOptionsRequest
@@ -6625,6 +6927,13 @@ export interface components {
             /** N */
             n: number;
         };
+        /** UpdateProvider */
+        UpdateProvider: {
+            /** Dailyrequestbudget */
+            dailyRequestBudget?: number | null;
+            /** Enabled */
+            enabled?: boolean | null;
+        };
         /** UpdateStarted */
         UpdateStarted: {
             /** Restarting */
@@ -6775,6 +7084,56 @@ export interface components {
             lines: components["schemas"]["DiffLine"][];
             /** Removed */
             removed: number;
+        };
+        /** WebProviderStatus */
+        WebProviderStatus: {
+            /** Capabilities */
+            capabilities: ("search" | "extract")[];
+            checkCost: components["schemas"]["CheckCostInfo"];
+            /** Configured */
+            configured: boolean;
+            /** Createdat */
+            createdAt: string | null;
+            /** Description */
+            description: string;
+            /** Docsurl */
+            docsUrl: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Hint */
+            hint: string | null;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "tavily" | "brave";
+            /** Isactive */
+            isActive: boolean;
+            /** Ispreferred */
+            isPreferred: boolean;
+            /** Keyurl */
+            keyUrl: string;
+            /** Label */
+            label: string;
+            /** Lastcheckedat */
+            lastCheckedAt: string | null;
+            /** Lasterror */
+            lastError: string | null;
+            /** Lasterrorcode */
+            lastErrorCode: string | null;
+            /** Lastokat */
+            lastOkAt: string | null;
+            reportedUsage: components["schemas"]["ReportedUsageInfo"] | null;
+            usage: components["schemas"]["LocalUsage"] | null;
+        };
+        /** WebResearchStatus */
+        WebResearchStatus: {
+            active: components["schemas"]["ActiveResearch"];
+            legacyEnvironment: components["schemas"]["LegacyEnvironment"];
+            /** Preferredprovider */
+            preferredProvider: ("tavily" | "brave") | null;
+            /** Providers */
+            providers: components["schemas"]["WebProviderStatus"][];
         };
         /** Windows */
         Windows: {
@@ -8058,6 +8417,226 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    status_api_integrations_web_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebResearchStatus"];
+                };
+            };
+        };
+    };
+    extract_api_integrations_web_extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_preferred_api_integrations_web_preferred_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferredBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebResearchStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_provider_api_integrations_web_providers__provider__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "tavily" | "brave";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProvider"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebProviderStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_api_integrations_web_providers__provider__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "tavily" | "brave";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckWorks"] | components["schemas"]["CheckFailed"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_key_api_integrations_web_providers__provider__key_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "tavily" | "brave";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PutKey"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebProviderStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_key_api_integrations_web_providers__provider__key_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "tavily" | "brave";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

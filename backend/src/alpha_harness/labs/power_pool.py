@@ -461,7 +461,7 @@ async def _write(optimizer: Optimizer, study_id: int) -> None:
             return await _pause(
                 optimizer,
                 study_id,
-                f"{run.model} is no longer set up. Set it up again under LLM Integration › "
+                f"{run.model} is no longer set up. Set it up again under API Integration › "
                 "Models, then resume.",
             )
         if not operators:

@@ -766,3 +766,58 @@ class SpcEvidence(Base):
     companies: Mapped[list[Any] | None] = mapped_column(JSON)
 
     __table_args__ = (Index("ix_spc_evidence_run", "run_id"),)
+
+
+class IntegrationCredential(Base):
+    """A key for a web service that is not an LLM (a research or search API).
+
+    Kept apart from :class:`ApiKey` on purpose: that table is built around models, per-model
+    budgets and key rotation, and none of it applies to a search API. One row per provider,
+    sealed at rest; the UI only ever receives ``hint``.
+
+    ``provider`` is validated against the registry in code rather than a CHECK constraint:
+    the migrator never alters a constraint, so adding a provider later must not need one.
+    """
+
+    __tablename__ = "integration_credential"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    provider: Mapped[str] = mapped_column(String(32), unique=True)
+    key_sealed: Mapped[bytes] = mapped_column(LargeBinary)
+    hint: Mapped[str] = mapped_column(String(32))
+    #: Salted hash of the key, so the same one cannot be stored twice without keeping a
+    #: second recoverable copy of it.
+    fingerprint: Mapped[str] = mapped_column(String(64), unique=True)
+    enabled: Mapped[bool] = mapped_column(default=True, server_default="1")
+    #: The user's own ceiling on requests per UTC day. The only thing between a key and an
+    #: open-ended bill, so it is always set.
+    daily_request_budget: Mapped[int] = mapped_column(Integer, default=100, server_default="100")
+    last_checked_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    last_ok_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    last_error: Mapped[str | None] = mapped_column(Text)
+    last_error_code: Mapped[str | None] = mapped_column(String(32))
+    #: What the provider itself said about usage the last time it was asked. Provider's
+    #: figures, as of ``checked_at`` inside it; never mixed with the local count.
+    reported_usage: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
+
+
+class IntegrationUsage(Base):
+    """Requests this application sent with a credential, per UTC day.
+
+    A local count of what *we* sent. It is not the provider's balance: other tools may share
+    the key, and providers bill by credits, not by request.
+    """
+
+    __tablename__ = "integration_usage"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    credential_id: Mapped[int] = mapped_column(
+        ForeignKey("integration_credential.id", ondelete="CASCADE")
+    )
+    day: Mapped[str] = mapped_column(String(10))  # YYYY-MM-DD, UTC
+    requests: Mapped[int] = mapped_column(Integer, default=0)
+    last_request_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+
+    __table_args__ = (UniqueConstraint("credential_id", "day", name="uq_integration_usage_day"),)
