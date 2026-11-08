@@ -28,6 +28,7 @@ from .db.models import SimStatus, SimulationRecord, utcnow
 from .db.sqlite import Database, snapshot
 from .engine.slots import BatchEngine
 from .engine.tracker import SimulationTracker
+from .integrations.service import WebResearchService
 from .labs.study import Optimizer
 from .llm.chat import ChatService
 from .llm.registry import ModelRegistry
@@ -107,7 +108,10 @@ class AppState:
         self.models = ModelRegistry(self.db)
         self.llm = LLMService(self.db, self.sealer, self.models)
         self.chat = ChatService(self.db, self.llm, self.queries)
-        self.spc = SpcService(self.db, self.llm, self.settings.data_dir, self.tasks)
+        # Web research (Tavily, Brave): not LLMs, so not part of ``self.llm``. SPC reads its
+        # search key from here, falling back to the legacy environment variables.
+        self.web = WebResearchService(self.db, self.sealer)
+        self.spc = SpcService(self.db, self.llm, self.settings.data_dir, self.tasks, web=self.web)
         self.optimizer = Optimizer(
             self.db,
             self.engine,

@@ -24,6 +24,7 @@ from ..brain.errors import (
     BrainValidationError,
     BrainVerificationRequired,
 )
+from ..integrations.errors import IntegrationError
 from ..labs.objectives import StudyError, StudyNotFoundError
 from ..llm.keys import BudgetExhaustedError, LLMError, NoKeysError
 from ..state import AppState
@@ -178,6 +179,15 @@ def install_exception_handlers(app: FastAPI) -> None:
             model=exc.model,
             keys=[s.to_dict() for s in exc.states],
         )
+
+    @app.exception_handler(IntegrationError)
+    async def _integration(_r: Request, exc: IntegrationError) -> JSONResponse:
+        # Starlette walks the MRO, so this answers every subclass. The message is built from
+        # the provider's name and an HTTP status only; it never holds a key.
+        extra: dict[str, Any] = {"retryable": exc.retryable}
+        if exc.retry_after is not None:
+            extra["retryAfter"] = round(exc.retry_after)
+        return _problem(exc.http_status, exc.code, str(exc), **extra)
 
     # Starlette answers anything unhandled with a bare "Internal Server Error", which leaves
     # a bug report with nothing to go on. Naming the error is enough to find it; the

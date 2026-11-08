@@ -25,6 +25,10 @@ from ..db.models import (
     SpcRunStatus,
     utcnow,
 )
+from ..integrations.base import SETTINGS_PATH
+from ..integrations.errors import IntegrationError
+from ..integrations.legacy import SETUP_HELP
+from ..integrations.service import Resolved
 from ..llm.keys import BudgetExhaustedError, LLMError, LLMUnavailable, NoKeysError
 from ..tasks import spawn
 from . import research
@@ -36,7 +40,10 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
+    import httpx2
+
     from ..db.sqlite import Database
+    from ..integrations.service import WebResearchService
     from ..llm.service import LLMService
     from ..tasks import Task, TaskRegistry
 
@@ -104,13 +111,21 @@ class SpcRunner:
         data_dir: Path,
         tasks: TaskRegistry | None = None,
         *,
-        provider: Callable[[], research.SearchProvider | None] = research.configured_provider,
+        provider: Callable[[], research.SearchProvider | None] | None = None,
+        web: WebResearchService | None = None,
+        transport: httpx2.AsyncBaseTransport | None = None,
     ) -> None:
+        """``web`` is how a key is found: the application's stored keys, then the legacy
+        environment. ``provider`` replaces that outright, for a caller that supplies its own
+        search (tests); it is never budgeted. With neither, only the environment is read.
+        ``transport`` replaces the network for the search requests, for the same callers."""
         self.db = db
         self.llm = llm
         self.data_dir = data_dir
         self.tasks = tasks
         self._provider = provider
+        self._web = web
+        self._transport = transport
         self._gate = asyncio.Semaphore(CONCURRENCY)
         self._jobs: dict[int, asyncio.Task[None]] = {}
         #: Why a task was cancelled, so shutdown does not read as a person's choice.
@@ -330,38 +345,70 @@ class SpcRunner:
             **fields,
         )
 
+    async def _resolve(self) -> Resolved | None:
+        """The search service this run will use: a caller's own, else a stored key, else the
+        legacy environment (see :class:`~..integrations.service.WebResearchService`)."""
+        if self._provider is not None:
+            supplied = self._provider()
+            return None if supplied is None else Resolved(supplied, "caller", supplied.name)
+        if self._web is not None:
+            return await self._web.resolve_search()
+        env = research.configured_provider()
+        return None if env is None else Resolved(env, "environment", env.name)
+
     async def _research(
         self, run_id: int, run: SpcRun, settings: dict[str, Any], mode: str
     ) -> tuple[dict[str, Any], str] | None:
         """``(summary, evidence text)``, or ``None`` after failing the run."""
-        provider = self._provider()
-        if provider is None:
+        resolved = await self._resolve()
+        if resolved is None:
             if mode == "required":
                 await self._fail(
                     run_id,
                     "research_not_configured",
-                    "This run needs web research and none is configured. " + research.SETUP_HELP,
+                    "This run needs web research and none is configured. " + SETUP_HELP,
                 )
                 return None
             return {
                 "status": "not_configured",
-                "help": research.SETUP_HELP,
+                "help": SETUP_HELP,
                 "note": "Ran without web research: the model answered from its own knowledge.",
             }, ""
+        provider = resolved.provider
         now = utcnow()
         queries = research.build_queries(settings, run.prompt_snapshot, now=now)
+        wanted = len(queries)
+        notes: list[str] = []
         try:
+            if self._web is not None and queries:
+                # Counted before anything is sent, against the user's own daily budget.
+                granted = await self._web.reserve(resolved, wanted)
+                if granted < wanted:
+                    queries = queries[:granted]
+                    notes.append(
+                        f"Only {granted} of {wanted} searches were sent: the daily request "
+                        f"budget for {provider.name} ran out. Raise it under {SETTINGS_PATH}."
+                    )
             found = await research.gather(
                 provider,
                 queries,
                 max_age_days=int(settings.get("freshness_days") or research.DEFAULT_MAX_AGE_DAYS),
                 now=now,
+                transport=self._transport,
             )
-        except SpcError as exc:
+        except (SpcError, IntegrationError) as exc:
+            if self._web is not None:
+                await self._web.record(
+                    resolved, error=exc if isinstance(exc, IntegrationError) else str(exc)
+                )
+            code = exc.code if isinstance(exc, SpcError) else f"research_{exc.code}"
             if mode == "required":
-                await self._fail(run_id, exc.code, str(exc))
+                await self._fail(run_id, code, str(exc))
                 return None
             return {"status": "failed", "provider": provider.name, "error": str(exc)}, ""
+        if self._web is not None:
+            await self._web.record(resolved, error=None)
+        found.notes.extend(notes)
         async with self.db.session() as session:
             session.add_all(
                 SpcEvidence(

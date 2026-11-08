@@ -372,10 +372,10 @@ function DescriptionModelRow({ current, change }: Rows) {
   const status = !ready
     ? null
     : !busiest
-      ? 'Off: none of your Keys can run a model. Add a Key and a model under LLM Integration.'
+      ? 'Off: none of your Keys can run a model. Add a Key and a model under API Integration.'
       : !runs
         ? kept
-          ? 'It has no enabled Key, so Write with AI is off. Enable one under LLM Integration.'
+          ? 'It has no enabled Key, so Write with AI is off. Enable one under API Integration.'
           : 'It is no longer set up, so Write with AI is off. Choose another model.'
         : chosen === AUTOMATIC
           ? `Automatic uses ${named(busiest)}: most requests left today.`

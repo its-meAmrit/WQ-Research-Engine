@@ -105,11 +105,11 @@ async def _plan(body: PowerPoolRequest, state: Any) -> dict[str, Any]:
     ref = body.model or next(iter(models), "")
     info = state.llm.registry.get(ref)
     if not ref:
-        problems.append("No model is set up. Set one up under LLM Integration › Models.")
+        problems.append("No model is set up. Set one up under API Integration › Models.")
     elif info is None:
-        problems.append(f"{ref} is not set up. Set it up under LLM Integration › Models.")
+        problems.append(f"{ref} is not set up. Set it up under API Integration › Models.")
     elif info.ref not in models:
-        problems.append(f"{info.id} can't run: no enabled Key for it. Add one in LLM Integration.")
+        problems.append(f"{info.id} can't run: no enabled Key for it. Add one in API Integration.")
 
     schema = await state.metadata.cached_settings_schema()
     legal = legal_choices(schema, body.region, body.delay)

@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { CopyIcon, PlayIcon, PlusIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -14,6 +15,7 @@ import {
   Field,
   Fieldset,
   Input,
+  LINK,
   Notice,
   Panel,
   Segmented,
@@ -229,7 +231,13 @@ function EditorBody({ saved }: { saved: PromptDetail | null }) {
   })
 
   const researchStatus = options.data?.research as
-    | { configured: boolean; help: string | null }
+    | {
+        configured: boolean
+        help: string | null
+        message?: string | null
+        source?: 'store' | 'environment' | null
+        label?: string | null
+      }
     | undefined
   const running = saved?.lastRun && isActive(saved.lastRun.status)
   const blocked = !saved
@@ -237,11 +245,11 @@ function EditorBody({ saved }: { saved: PromptDetail | null }) {
     : dirty
       ? 'You have unsaved changes. Save them first, so the run tests exactly what you see.'
       : !chosen
-        ? 'Choose a model. Set one up under LLM Integration if the list is empty.'
+        ? 'Choose a model. Set one up under API Integration if the list is empty.'
         : running
           ? 'A run of this prompt is already in progress.'
           : research === 'required' && researchStatus && !researchStatus.configured
-            ? 'Web research is required but not configured.'
+            ? 'Web research is required but not set up. Add a key under API Integration › Web Research.'
             : null
 
   return (
@@ -293,7 +301,7 @@ function EditorBody({ saved }: { saved: PromptDetail | null }) {
                 aria-invalid={!weightOk}
               />
             </Field>
-            <Field label="Model" hint="One you have set up under LLM Integration.">
+            <Field label="Model" hint="One you have set up under API Integration.">
               <Select
                 label="Model"
                 value={chosen}
@@ -320,7 +328,7 @@ function EditorBody({ saved }: { saved: PromptDetail | null }) {
           </div>
           {models.length === 0 && options.isSuccess && (
             <Notice tone="warn" title="No model is ready to run">
-              Add an API key and set up a model under LLM Integration. You can still write, save and
+              Add an API key and set up a model under API Integration. You can still write, save and
               version prompts without one.
             </Notice>
           )}
@@ -419,10 +427,26 @@ function EditorBody({ saved }: { saved: PromptDetail | null }) {
             />
           </Fieldset>
           {researchStatus && !researchStatus.configured && research !== 'off' && (
-            <Notice tone="warn" title="Research provider not configured">
-              {researchStatus.help}
+            <Notice tone="warn" title="Web research is not set up">
+              {researchStatus.help}{' '}
+              <Link to="/ai/$tab" params={{ tab: 'web' }} className={LINK}>
+                Open Web Research setup
+              </Link>
             </Notice>
           )}
+          {researchStatus?.configured &&
+            researchStatus.source === 'environment' &&
+            research !== 'off' && (
+              <Notice
+                tone="info"
+                title={`Research uses ${researchStatus.label} from an environment variable`}
+              >
+                {researchStatus.message}{' '}
+                <Link to="/ai/$tab" params={{ tab: 'web' }} className={LINK}>
+                  Manage it in Web Research
+                </Link>
+              </Notice>
+            )}
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="primary" disabled={!!blocked} onClick={() => setConfirmRun(true)}>
               <PlayIcon /> Run now

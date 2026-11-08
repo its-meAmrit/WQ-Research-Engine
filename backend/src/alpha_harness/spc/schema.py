@@ -27,7 +27,7 @@ DEFAULT_TARGET_EQUITIES = 50
 FREQUENCIES = ("daily", "weekly", "monthly", "quarterly")
 
 #: Model families the documentation names. Informational: the model is whichever the user set
-#: up under LLM Integration, and this list is not used to restrict that choice.
+#: up under API Integration, and this list is not used to restrict that choice.
 DOCUMENTED_MODEL_FAMILIES = (
     "Claude",
     "GPT",

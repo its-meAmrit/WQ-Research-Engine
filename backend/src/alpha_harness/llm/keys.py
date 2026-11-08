@@ -49,7 +49,7 @@ class NoKeysError(LLMError):
                 else "Most of the providers listed there are free and need no card."
             )
             super().__init__(
-                f"No {known.label} key has been added yet. Open AI Integration. {tail}"
+                f"No {known.label} key has been added yet. Open API Integration. {tail}"
             )
             return
         super().__init__(

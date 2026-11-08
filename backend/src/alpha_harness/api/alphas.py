@@ -326,7 +326,7 @@ async def write_description(alpha_id: str, state: State) -> AlphaDescription:
             400,
             "no_api_key",
             "Write with AI needs a model one of your Keys can run. Add a Key, and set up a "
-            "model for it, under LLM Integration.",
+            "model for it, under API Integration.",
         )
     if chosen and chosen not in {m["ref"] for m in runnable}:
         info = state.llm.registry.get(chosen)
@@ -335,7 +335,7 @@ async def write_description(alpha_id: str, state: State) -> AlphaDescription:
             "no_api_key",
             f"{chosen} is no longer set up. Choose another model in Settings › Alphas."
             if info is None
-            else f"{info.id} can't run: no enabled Key for it. Add one under LLM Integration, "
+            else f"{info.id} can't run: no enabled Key for it. Add one under API Integration, "
             "or choose another model in Settings › Alphas.",
         )
     body, _ = await _cached(

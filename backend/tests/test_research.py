@@ -176,7 +176,7 @@ async def test_one_failed_query_is_noted_and_the_rest_carry_on() -> None:
 
 
 async def test_every_query_failing_is_an_error_never_an_empty_success() -> None:
-    with pytest.raises(ResearchFailedError, match="refused the search key"):
+    with pytest.raises(ResearchFailedError, match="refused the API key"):
         await gather(
             BraveSearch("k"),
             ["a", "b"],
