@@ -3,6 +3,7 @@
 import { Link } from '@tanstack/react-router'
 import {
   ArrowUpRightIcon,
+  BookOpenTextIcon,
   BracesIcon,
   DnaIcon,
   LayersIcon,
@@ -19,6 +20,7 @@ const ICONS: Record<(typeof LAB_TABS)[number]['tab'], LucideIcon> = {
   evolution: DnaIcon,
   'power-pool': ZapIcon,
   'super-alpha': LayersIcon,
+  papers: BookOpenTextIcon,
 }
 
 /** What each one searches, since a name alone does not say which to start with. */
@@ -28,6 +30,8 @@ const ABOUT: Record<(typeof LAB_TABS)[number]['tab'], string> = {
   evolution: 'Breeds new Alphas from seeds you pick, holding the last two years back as a test.',
   'power-pool': 'An LLM writes Power Pool Alphas for the datasets you pick.',
   'super-alpha': "Combines your submitted Alphas into SuperAlphas that pass BRAIN's checks.",
+  papers:
+    'Reads research papers into testable ideas and checks which your BRAIN data can support. Runs no simulations.',
 }
 
 /** The card a hub screen links each of its entries with; the `Link` carries it. */

@@ -22,6 +22,7 @@ dependencies = [
     "packaging>=26.3",
     "pyarrow>=25.0.1",
     "pydantic>=2.13.5",
+    "pymupdf>=1.26,<2",
     "sqlalchemy[asyncio]>=2.0.54",
     "structlog>=26.1.0",
     "tzdata>=2026.4",

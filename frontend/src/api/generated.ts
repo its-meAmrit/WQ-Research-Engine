@@ -1670,6 +1670,338 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Ideas */
+        get: operations["list_ideas_api_research_ideas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/ideas/{idea_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Idea */
+        get: operations["get_idea_api_research_ideas__idea_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Idea
+         * @description Save, reject or annotate an idea.
+         */
+        patch: operations["update_idea_api_research_ideas__idea_id__patch"];
+        trace?: never;
+    };
+    "/api/research/ideas/{idea_id}/assess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assess
+         * @description Check an idea's data and operators against one BRAIN scope. Reads the local catalogue
+         *     and the cached operator list; nothing is sent to BRAIN.
+         */
+        post: operations["assess_api_research_ideas__idea_id__assess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/ideas/{idea_id}/handoff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hand Off
+         * @description Record a draft for the Alpha Builder. A draft only: no expression, no simulation.
+         */
+        post: operations["hand_off_api_research_ideas__idea_id__handoff_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Jobs */
+        get: operations["list_jobs_api_research_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Job */
+        get: operations["get_job_api_research_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/jobs/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Job */
+        post: operations["cancel_job_api_research_jobs__job_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Options
+         * @description Models that can answer, the limits that apply, and whether web search is set up.
+         */
+        get: operations["options_api_research_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Papers */
+        get: operations["list_papers_api_research_papers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Paper
+         * @description A DOI, an arXiv id or a link. Registries supply the details; full text only when open.
+         */
+        post: operations["import_paper_api_research_papers_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload
+         * @description A PDF as the raw request body (``Content-Type: application/pdf``).
+         *
+         *     Read as a stream and stopped at the size limit, so an oversized upload is refused without
+         *     being held in memory.
+         */
+        post: operations["upload_api_research_papers_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paper */
+        get: operations["get_paper_api_research_papers__source_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Paper
+         * @description Remove a paper with its stored text, ideas and jobs.
+         */
+        delete: operations["delete_paper_api_research_papers__source_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers/{source_id}/analyze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyze
+         * @description Start the model-assisted analysis. Returns at once; follow the job.
+         */
+        post: operations["analyze_api_research_papers__source_id__analyze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers/{source_id}/pages/{page}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Page
+         * @description The stored text of one page, to read a cited passage in its place.
+         */
+        get: operations["get_page_api_research_papers__source_id__pages__page__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/papers/{source_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview
+         * @description What an analysis would send and cost. Nothing is sent.
+         */
+        get: operations["preview_api_research_papers__source_id__preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search
+         * @description Academic keyword search (OpenAlex, arXiv; Semantic Scholar if asked). ``web`` adds
+         *     Tavily results as supplementary reading, kept apart from the papers.
+         */
+        get: operations["search_api_research_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/search/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Result
+         * @description Import a search result by its DOI, arXiv id or link, in that order of preference.
+         */
+        post: operations["import_result_api_research_search_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search-lab/options": {
         parameters: {
             query?: never;
@@ -3059,6 +3391,19 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** AnalyzeRequest */
+        AnalyzeRequest: {
+            /** Charbudget */
+            charBudget?: number | null;
+            /**
+             * Force
+             * @default false
+             */
+            force: boolean;
+            /** Modelref */
+            modelRef?: string | null;
+            scope?: components["schemas"]["ScopeIn"] | null;
+        };
         /** Assistant */
         Assistant: {
             /** Budget */
@@ -3295,6 +3640,44 @@ export interface components {
         Cancelled: {
             /** Cancelled */
             cancelled: boolean;
+        };
+        /** CandidateImport */
+        CandidateImport: {
+            /** Arxivid */
+            arxivId?: string | null;
+            /** Doi */
+            doi?: string | null;
+            /** Url */
+            url?: string | null;
+        };
+        /** CandidateOut */
+        CandidateOut: {
+            /** Createdat */
+            createdAt: string | null;
+            /** Expression */
+            expression: string | null;
+            /** Id */
+            id: string;
+            /** Ideaid */
+            ideaId: string;
+            /** Provenance */
+            provenance: {
+                [key: string]: unknown;
+            };
+            /** Scope */
+            scope: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
+            /** Validationdetail */
+            validationDetail: {
+                [key: string]: unknown;
+            } | null;
+            /** Validationoutcome */
+            validationOutcome: string;
+            /** Version */
+            version: number;
         };
         /** CatalogCounts */
         CatalogCounts: {
@@ -3727,6 +4110,27 @@ export interface components {
             kind: "add" | "del" | "ctx";
             /** Text */
             text: string;
+        };
+        /** DocumentOut */
+        DocumentOut: {
+            /** Equations */
+            equations: {
+                [key: string]: unknown;
+            }[];
+            /** Pages */
+            pages: number;
+            /** Parser */
+            parser: string;
+            /** Sections */
+            sections: components["schemas"]["SectionOut"][];
+            /** Stats */
+            stats: {
+                [key: string]: unknown;
+            };
+            /** Tables */
+            tables: {
+                [key: string]: unknown;
+            }[];
         };
         /** DropResult */
         DropResult: {
@@ -4242,6 +4646,267 @@ export interface components {
             /** Websocketclients */
             websocketClients: number;
         };
+        /** IdeaDetail */
+        IdeaDetail: {
+            /** Anomaly */
+            anomaly: string;
+            /** Brainassessment */
+            brainAssessment: {
+                [key: string]: unknown;
+            } | null;
+            /** Candidates */
+            candidates: components["schemas"]["CandidateOut"][];
+            /** Claims */
+            claims: {
+                [key: string]: unknown;
+            };
+            /** Createdat */
+            createdAt: string | null;
+            /** Economichypothesis */
+            economicHypothesis: string;
+            /** Evidence */
+            evidence: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Evidencescope
+             * @enum {string}
+             */
+            evidenceScope: "paper" | "abstract";
+            /** Extrasourceids */
+            extraSourceIds: string[];
+            /** Formulaneedsreview */
+            formulaNeedsReview: boolean;
+            /** Holdingperiod */
+            holdingPeriod: string;
+            /** Id */
+            id: string;
+            /** Implementationvariants */
+            implementationVariants: string[];
+            /** Jobid */
+            jobId: string | null;
+            /** Limitations */
+            limitations: string[];
+            /** Lookaheadconcerns */
+            lookaheadConcerns: string[];
+            /** Lookback */
+            lookback: string;
+            /** Mainfinding */
+            mainFinding: string;
+            /** Methodology */
+            methodology: string;
+            /** Missinginformation */
+            missingInformation: string[];
+            /** Note */
+            note: string;
+            /** Pointintime */
+            pointInTime: string;
+            /** Readiness */
+            readiness: ("ready" | "adaptation" | "blocked") | null;
+            /** Reportedformula */
+            reportedFormula: string | null;
+            /** Requiredvariables */
+            requiredVariables: {
+                [key: string]: unknown;
+            }[];
+            /** Signaldefinition */
+            signalDefinition: string;
+            /** Signaldirection */
+            signalDirection: string;
+            source: components["schemas"]["IdeaSource"] | null;
+            /** Sourceid */
+            sourceId: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "saved" | "rejected";
+            /**
+             * Support
+             * @enum {string}
+             */
+            support: "source_backed" | "partially_supported" | "speculative";
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
+            /** Universe */
+            universe: string;
+            /** Updatedat */
+            updatedAt: string | null;
+        };
+        /** IdeaOut */
+        IdeaOut: {
+            /** Anomaly */
+            anomaly: string;
+            /** Brainassessment */
+            brainAssessment: {
+                [key: string]: unknown;
+            } | null;
+            /** Claims */
+            claims: {
+                [key: string]: unknown;
+            };
+            /** Createdat */
+            createdAt: string | null;
+            /** Economichypothesis */
+            economicHypothesis: string;
+            /** Evidence */
+            evidence: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Evidencescope
+             * @enum {string}
+             */
+            evidenceScope: "paper" | "abstract";
+            /** Extrasourceids */
+            extraSourceIds: string[];
+            /** Formulaneedsreview */
+            formulaNeedsReview: boolean;
+            /** Holdingperiod */
+            holdingPeriod: string;
+            /** Id */
+            id: string;
+            /** Implementationvariants */
+            implementationVariants: string[];
+            /** Jobid */
+            jobId: string | null;
+            /** Limitations */
+            limitations: string[];
+            /** Lookaheadconcerns */
+            lookaheadConcerns: string[];
+            /** Lookback */
+            lookback: string;
+            /** Mainfinding */
+            mainFinding: string;
+            /** Methodology */
+            methodology: string;
+            /** Missinginformation */
+            missingInformation: string[];
+            /** Note */
+            note: string;
+            /** Pointintime */
+            pointInTime: string;
+            /** Readiness */
+            readiness: ("ready" | "adaptation" | "blocked") | null;
+            /** Reportedformula */
+            reportedFormula: string | null;
+            /** Requiredvariables */
+            requiredVariables: {
+                [key: string]: unknown;
+            }[];
+            /** Signaldefinition */
+            signalDefinition: string;
+            /** Signaldirection */
+            signalDirection: string;
+            source: components["schemas"]["IdeaSource"] | null;
+            /** Sourceid */
+            sourceId: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "saved" | "rejected";
+            /**
+             * Support
+             * @enum {string}
+             */
+            support: "source_backed" | "partially_supported" | "speculative";
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
+            /** Universe */
+            universe: string;
+            /** Updatedat */
+            updatedAt: string | null;
+        };
+        /** IdeaPatch */
+        IdeaPatch: {
+            /** Note */
+            note?: string | null;
+            /** Status */
+            status?: ("new" | "saved" | "rejected") | null;
+        };
+        /** IdeaSource */
+        IdeaSource: {
+            /**
+             * Accessstatus
+             * @enum {string}
+             */
+            accessStatus: "full_text" | "abstract_only" | "metadata_only";
+            /** Authors */
+            authors: string[];
+            /** Doi */
+            doi: string | null;
+            /** Id */
+            id: string;
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Title */
+            title: string;
+        };
+        /** ImportRequest */
+        ImportRequest: {
+            /** Reference */
+            reference: string;
+        };
+        /** JobOut */
+        JobOut: {
+            /** Active */
+            active: boolean;
+            /** Cancelrequested */
+            cancelRequested: boolean;
+            /** Createdat */
+            createdAt: string | null;
+            /** Errorcategory */
+            errorCategory: string | null;
+            /** Errordetail */
+            errorDetail: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Errormessage */
+            errorMessage: string | null;
+            /** Finishedat */
+            finishedAt: string | null;
+            /** Id */
+            id: string;
+            /** Inputref */
+            inputRef: string;
+            /** Kind */
+            kind: string;
+            /** Message */
+            message: string;
+            /** Modelid */
+            modelId: string | null;
+            /** Modelref */
+            modelRef: string | null;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Progress */
+            progress: number;
+            /** Provider */
+            provider: string | null;
+            /** Rawoutput */
+            rawOutput: string | null;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            } | null;
+            /** Sourceid */
+            sourceId: string | null;
+            /** Startedat */
+            startedAt: string | null;
+            /** Status */
+            status: string;
+            /** Usage */
+            usage: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** KeyFailed */
         KeyFailed: {
             /** Error */
@@ -4532,6 +5197,17 @@ export interface components {
             /** Usable */
             usable: boolean;
         };
+        /** Limits */
+        Limits: {
+            /** Defaultcharbudget */
+            defaultCharBudget: number;
+            /** Maxideas */
+            maxIdeas: number;
+            /** Maxpages */
+            maxPages: number;
+            /** Maxpdfmb */
+            maxPdfMb: number;
+        };
         /** LocalUsage */
         LocalUsage: {
             /** Dailybudget */
@@ -4710,6 +5386,15 @@ export interface components {
         OverlapRequest: {
             /** Runids */
             runIds: number[];
+        };
+        /** PageOut */
+        PageOut: {
+            /** Page */
+            page: number;
+            /** Pages */
+            pages: number;
+            /** Text */
+            text: string;
         };
         /** Pair */
         Pair: {
@@ -5216,6 +5901,31 @@ export interface components {
             /** Warnings */
             warnings: string[];
         };
+        /** PreviewOut */
+        PreviewOut: {
+            /** Abstractonly */
+            abstractOnly: boolean;
+            /** Basis */
+            basis: string;
+            /** Charsleftout */
+            charsLeftOut: number;
+            /** Charssent */
+            charsSent: number;
+            /** Chunks */
+            chunks: number;
+            /** Estimatedinputtokens */
+            estimatedInputTokens: number;
+            /** Estimatedoutputtokens */
+            estimatedOutputTokens: number;
+            /** Requests */
+            requests: number;
+            /** Sections */
+            sections: components["schemas"]["PreviewSection"][];
+            /** Sourceid */
+            sourceId: string;
+            /** Truncated */
+            truncated: boolean;
+        };
         /**
          * PreviewRequest
          * @description An Alpha to read, or a bare expression with the decay and truncation to hold it at.
@@ -5238,6 +5948,15 @@ export interface components {
             testPeriod?: string | null;
             /** Truncation */
             truncation?: number | null;
+        };
+        /** PreviewSection */
+        PreviewSection: {
+            /** Heading */
+            heading: string;
+            /** Id */
+            id: string;
+            /** Included */
+            included: boolean;
         };
         /** PromptCandidate */
         PromptCandidate: {
@@ -5722,6 +6441,16 @@ export interface components {
             /** Used */
             used: number | null;
         };
+        /** ResearchOptions */
+        ResearchOptions: {
+            limits: components["schemas"]["Limits"];
+            /** Models */
+            models: components["schemas"]["ModelChoice"][];
+            /** Topics */
+            topics: string[];
+            /** Websearch */
+            webSearch: boolean;
+        };
         /**
          * ResolveOptionsRequest
          * @description Settings chosen so far. Partial is fine — that is the point.
@@ -5935,6 +6664,67 @@ export interface components {
              */
             thread_id?: number | null;
         };
+        /** ScopeIn */
+        ScopeIn: {
+            /** Delay */
+            delay: number;
+            /**
+             * Instrumenttype
+             * @default EQUITY
+             */
+            instrumentType: string;
+            /** Region */
+            region: string;
+            /** Universe */
+            universe: string;
+        };
+        /** ScopeRequest */
+        ScopeRequest: {
+            scope: components["schemas"]["ScopeIn"];
+        };
+        /** SearchOut */
+        SearchOut: {
+            /** Notes */
+            notes: string[];
+            /** Papers */
+            papers: components["schemas"]["SearchPaper"][];
+            /** Query */
+            query: string;
+            /** Web */
+            web: components["schemas"]["WebHit"][];
+        };
+        /** SearchPaper */
+        SearchPaper: {
+            /** Abstract */
+            abstract: string | null;
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "full_text" | "abstract_only" | "metadata_only";
+            /** Arxivid */
+            arxivId: string | null;
+            /** Authors */
+            authors: string[];
+            /** Citations */
+            citations: number | null;
+            /** Doi */
+            doi: string | null;
+            /** Importedas */
+            importedAs: string | null;
+            /** Opencopy */
+            openCopy: boolean;
+            /** Provider */
+            provider: string;
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string | null;
+            /** Venue */
+            venue: string | null;
+        };
         /** SearchRequest */
         SearchRequest: {
             /**
@@ -5965,6 +6755,19 @@ export interface components {
             universe?: string | null;
             /** Vector Operators */
             vector_operators?: string[];
+        };
+        /** SectionOut */
+        SectionOut: {
+            /** Heading */
+            heading: string;
+            /** Id */
+            id: string;
+            /** Level */
+            level: number;
+            /** Pageend */
+            pageEnd: number;
+            /** Pagestart */
+            pageStart: number;
         };
         /** SeedReason */
         SeedReason: {
@@ -6168,6 +6971,127 @@ export interface components {
             /** Universe */
             universe: string | null;
         };
+        /** SourceDetail */
+        SourceDetail: {
+            /** Abstract */
+            abstract: string | null;
+            /** Accessdetail */
+            accessDetail: string;
+            /**
+             * Accessstatus
+             * @enum {string}
+             */
+            accessStatus: "full_text" | "abstract_only" | "metadata_only";
+            /** Arxivid */
+            arxivId: string | null;
+            /** Authors */
+            authors: string[];
+            /** Canonicalurl */
+            canonicalUrl: string | null;
+            /** Contenthash */
+            contentHash: string | null;
+            /** Createdat */
+            createdAt: string | null;
+            document: components["schemas"]["DocumentOut"] | null;
+            /** Doi */
+            doi: string | null;
+            /** Extractionstatus */
+            extractionStatus: string;
+            /** Hastext */
+            hasText: boolean;
+            /** Id */
+            id: string;
+            /** Ideacount */
+            ideaCount: number;
+            /** Importmethod */
+            importMethod: string;
+            /** License */
+            license: string | null;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Pagecount */
+            pageCount: number | null;
+            /** Provenance */
+            provenance: {
+                [key: string]: unknown;
+            };
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Retrievedat */
+            retrievedAt: string | null;
+            /** Savedideacount */
+            savedIdeaCount: number;
+            /** Sourcetype */
+            sourceType: string;
+            /** Title */
+            title: string;
+            /** Topics */
+            topics: string[];
+            /** Venue */
+            venue: string | null;
+        };
+        /** SourceOut */
+        SourceOut: {
+            /** Abstract */
+            abstract: string | null;
+            /** Accessdetail */
+            accessDetail: string;
+            /**
+             * Accessstatus
+             * @enum {string}
+             */
+            accessStatus: "full_text" | "abstract_only" | "metadata_only";
+            /** Arxivid */
+            arxivId: string | null;
+            /** Authors */
+            authors: string[];
+            /** Canonicalurl */
+            canonicalUrl: string | null;
+            /** Contenthash */
+            contentHash: string | null;
+            /** Createdat */
+            createdAt: string | null;
+            /** Doi */
+            doi: string | null;
+            /** Extractionstatus */
+            extractionStatus: string;
+            /** Hastext */
+            hasText: boolean;
+            /** Id */
+            id: string;
+            /** Ideacount */
+            ideaCount: number;
+            /** Importmethod */
+            importMethod: string;
+            /** License */
+            license: string | null;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Pagecount */
+            pageCount: number | null;
+            /** Provenance */
+            provenance: {
+                [key: string]: unknown;
+            };
+            /** Publishedat */
+            publishedAt: string | null;
+            /** Retrievedat */
+            retrievedAt: string | null;
+            /** Savedideacount */
+            savedIdeaCount: number;
+            /** Sourcetype */
+            sourceType: string;
+            /** Title */
+            title: string;
+            /** Topics */
+            topics: string[];
+            /** Venue */
+            venue: string | null;
+        };
         /** SourceSettings */
         SourceSettings: {
             /** Decay */
@@ -6221,6 +7145,17 @@ export interface components {
             schemaProfile: {
                 [key: string]: unknown;
             };
+        };
+        /** StartedOut */
+        StartedOut: {
+            /** Existing */
+            existing: boolean;
+            /** Jobid */
+            jobId: string | null;
+            /** Message */
+            message: string;
+            /** Sourceid */
+            sourceId: string | null;
         };
         /** StatsItem */
         StatsItem: {
@@ -7084,6 +8019,17 @@ export interface components {
             lines: components["schemas"]["DiffLine"][];
             /** Removed */
             removed: number;
+        };
+        /** WebHit */
+        WebHit: {
+            /** Kind */
+            kind: string;
+            /** Snippet */
+            snippet: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
         };
         /** WebProviderStatus */
         WebProviderStatus: {
@@ -9710,6 +10656,618 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Quitting"];
+                };
+            };
+        };
+    };
+    list_ideas_api_research_ideas_get: {
+        parameters: {
+            query?: {
+                sourceId?: string | null;
+                status?: string | null;
+                readiness?: string | null;
+                topic?: string | null;
+                support?: string | null;
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdeaOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_idea_api_research_ideas__idea_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdeaDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_idea_api_research_ideas__idea_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdeaDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assess_api_research_ideas__idea_id__assess_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScopeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdeaDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hand_off_api_research_ideas__idea_id__handoff_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScopeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_jobs_api_research_jobs_get: {
+        parameters: {
+            query?: {
+                sourceId?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_job_api_research_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_job_api_research_jobs__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    options_api_research_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchOptions"];
+                };
+            };
+        };
+    };
+    list_papers_api_research_papers_get: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                access?: string | null;
+                source?: string | null;
+                topic?: string | null;
+                readiness?: string | null;
+                saved?: boolean | null;
+                publishedFrom?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_paper_api_research_papers_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_api_research_papers_upload_post: {
+        parameters: {
+            query?: {
+                filename?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_paper_api_research_papers__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_paper_api_research_papers__source_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyze_api_research_papers__source_id__analyze_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalyzeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_page_api_research_papers__source_id__pages__page__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+                page: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_research_papers__source_id__preview_get: {
+        parameters: {
+            query?: {
+                charBudget?: number | null;
+            };
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_research_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                semantic?: boolean;
+                web?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_result_api_research_search_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
