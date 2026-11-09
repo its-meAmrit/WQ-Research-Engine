@@ -12,6 +12,7 @@ the ability to cancel a running simulation, which is the exact failure this proj
 exists to prevent.
 """
 
+import uuid
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
@@ -821,3 +822,271 @@ class IntegrationUsage(Base):
     last_request_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
 
     __table_args__ = (UniqueConstraint("credential_id", "day", name="uq_integration_usage_day"),)
+
+
+# --- Research Intelligence ---------------------------------------------------
+#
+# A library of sources (papers now, scraped articles later) and the testable ideas taken from
+# them. Independent of the SPC tables above and of every simulation table: nothing here is a
+# prompt, a portfolio or a simulation, and nothing in this phase ever starts one. Ids are
+# opaque strings so a source keeps its identity whatever kind of source it is.
+
+
+def research_id(prefix: str) -> str:
+    """``src_3f9a...``: a stable id that says what it names when it turns up in a log."""
+    return f"{prefix}_{uuid.uuid4().hex[:16]}"
+
+
+class ResearchSource(Base):
+    """One paper (or, later, article): what it is, where it came from, how much of it we hold.
+
+    ``access_status`` is the honest answer to "did we read this?": ``full_text`` only when the
+    whole document was available (an upload, or an open-access copy), otherwise
+    ``abstract_only`` or ``metadata_only``. Nothing downstream may treat the lesser two as the
+    paper.
+    """
+
+    __tablename__ = "research_source"
+
+    id: Mapped[str] = mapped_column(
+        String(32), primary_key=True, default=lambda: research_id("src")
+    )
+    #: ``academic_paper`` now; ``web_article`` when scraped articles join the library.
+    source_type: Mapped[str] = mapped_column(
+        String(24), default="academic_paper", server_default="academic_paper"
+    )
+    #: How it came in: upload | doi | arxiv | url | search.
+    import_method: Mapped[str] = mapped_column(
+        String(16), default="upload", server_default="upload"
+    )
+    title: Mapped[str] = mapped_column(Text, default="", server_default="")
+    authors: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    abstract: Mapped[str | None] = mapped_column(Text)
+    canonical_url: Mapped[str | None] = mapped_column(Text)
+    doi: Mapped[str | None] = mapped_column(String(255))
+    arxiv_id: Mapped[str | None] = mapped_column(String(64))
+    #: As the source gave it (``2019``, ``2019-05``, ``2019-05-17``); never completed by guessing.
+    published_at: Mapped[str | None] = mapped_column(String(32))
+    venue: Mapped[str | None] = mapped_column(Text)
+    topics: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    retrieved_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    #: full_text | abstract_only | metadata_only
+    access_status: Mapped[str] = mapped_column(
+        String(24), default="metadata_only", server_default="metadata_only"
+    )
+    #: Why: "uploaded by you", "open access copy via OpenAlex", "no open full text found".
+    access_detail: Mapped[str] = mapped_column(Text, default="", server_default="")
+    license: Mapped[str | None] = mapped_column(String(200))
+    #: SHA-256 of the PDF bytes, so the same file uploaded twice is one source.
+    content_hash: Mapped[str | None] = mapped_column(String(64))
+    #: pending | parsed | partial | unreadable | failed | not_applicable
+    extraction_status: Mapped[str] = mapped_column(
+        String(24), default="pending", server_default="pending"
+    )
+    page_count: Mapped[int | None] = mapped_column(Integer)
+    metadata_: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
+    provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
+
+    # Unique where present: SQLite allows many NULLs in a unique index, and a source without a
+    # DOI is not a duplicate of another without one.
+    __table_args__ = (
+        Index("uq_research_source_doi", "doi", unique=True),
+        Index("uq_research_source_arxiv", "arxiv_id", unique=True),
+        Index("uq_research_source_url", "canonical_url", unique=True),
+        Index("uq_research_source_hash", "content_hash", unique=True),
+        Index("ix_research_source_created", "created_at"),
+    )
+
+
+class ResearchDocument(Base):
+    """A source's parsed text, kept so an analysis can be run again without the file.
+
+    The PDF itself is not kept: the text, its page boundaries and the flags below are what the
+    pipeline reads, and a copy of someone's paper has no use after that.
+    """
+
+    __tablename__ = "research_document"
+
+    source_id: Mapped[str] = mapped_column(
+        ForeignKey("research_source.id", ondelete="CASCADE"), primary_key=True
+    )
+    #: ``[{"page": 1, "text": "..."}]``, in order, 1-based.
+    pages: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: ``[{"id": "s1", "heading": "Data", "level": 1, "page_start": 3, "page_end": 5}]``
+    sections: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: Tables PyMuPDF recovered cleanly: ``{"page", "rows"}``.
+    tables: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: Equation-looking text, each with ``needs_review``: never turned into a formula by us.
+    equations: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    stats: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    parser: Mapped[str] = mapped_column(String(40), default="", server_default="")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+
+class ResearchJobStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    #: Left running by a process that ended: not a failure of the work, and not a result.
+    INTERRUPTED = "interrupted"
+
+    @property
+    def terminal(self) -> bool:
+        return self not in (ResearchJobStatus.QUEUED, ResearchJobStatus.RUNNING)
+
+
+class ResearchJob(Base):
+    """One unit of work on a source: an import or an analysis.
+
+    Written before the work starts and updated as it goes, so a restart can say where it
+    stopped and a screen can follow it by reading the row.
+    """
+
+    __tablename__ = "research_job"
+
+    id: Mapped[str] = mapped_column(
+        String(32), primary_key=True, default=lambda: research_id("job")
+    )
+    #: import | analyze
+    kind: Mapped[str] = mapped_column(String(16))
+    source_id: Mapped[str | None] = mapped_column(
+        ForeignKey("research_source.id", ondelete="CASCADE")
+    )
+    #: What was asked for: a file name, a DOI, an arXiv id or a URL.
+    input_ref: Mapped[str] = mapped_column(Text, default="", server_default="")
+    status: Mapped[str] = mapped_column(
+        String(16), default=ResearchJobStatus.QUEUED.value, server_default="queued"
+    )
+    progress: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")
+    #: What it is doing now, or why it stopped.
+    message: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: Stable, machine-readable: ``no_full_text``, ``invalid_model_output``, ``interrupted``, ...
+    error_category: Mapped[str | None] = mapped_column(String(48))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    #: Validation problems found in the model's answer, shown as they are.
+    error_detail: Mapped[list[Any] | None] = mapped_column(JSON)
+    model_ref: Mapped[str | None] = mapped_column(String(300))
+    provider: Mapped[str | None] = mapped_column(String(32))
+    model_id: Mapped[str | None] = mapped_column(String(200))
+    #: Chunks, character budget and the estimate shown before it started.
+    params: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    usage: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    #: The model's last answer when it could not be used, clipped: what to read to see why.
+    raw_output: Mapped[str | None] = mapped_column(Text)
+    #: Same source, model, prompt and budget: a finished job with this key is the answer.
+    cache_key: Mapped[str | None] = mapped_column(String(64))
+    cancel_requested: Mapped[bool] = mapped_column(default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+
+    __table_args__ = (
+        Index("ix_research_job_source", "source_id", "created_at"),
+        Index("ix_research_job_status", "status"),
+        Index("ix_research_job_cache", "cache_key"),
+    )
+
+
+class ResearchIdea(Base):
+    """One testable idea taken from a source, and what we know about running it on BRAIN.
+
+    The fields hold the paper's own content and the model's, apart: ``claims`` keeps what the
+    authors said, what the model inferred and what is a new proposal in three lists, and
+    ``support`` says whether any author claim was found in the text. An adaptation the model
+    wrote is never stored as the authors'.
+    """
+
+    __tablename__ = "research_idea"
+
+    id: Mapped[str] = mapped_column(
+        String(32), primary_key=True, default=lambda: research_id("idea")
+    )
+    source_id: Mapped[str] = mapped_column(ForeignKey("research_source.id", ondelete="CASCADE"))
+    #: Other sources that report the same idea; empty until a second source joins.
+    extra_source_ids: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    job_id: Mapped[str | None] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(Text)
+    #: value | momentum | quality | growth | size | volatility | liquidity | sentiment |
+    #: analyst | event | macro | other
+    topic: Mapped[str] = mapped_column(String(24), default="other", server_default="other")
+    main_finding: Mapped[str] = mapped_column(Text, default="", server_default="")
+    economic_hypothesis: Mapped[str] = mapped_column(Text, default="", server_default="")
+    anomaly: Mapped[str] = mapped_column(Text, default="", server_default="")
+    signal_definition: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: long_high | long_low | long_short_by_sign | unclear
+    signal_direction: Mapped[str] = mapped_column(
+        String(24), default="unclear", server_default="unclear"
+    )
+    required_variables: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    reported_formula: Mapped[str | None] = mapped_column(Text)
+    #: Whether the formula was read from clean text; a doubtful one is never "fixed" by us.
+    formula_needs_review: Mapped[bool] = mapped_column(default=False, server_default="0")
+    lookback: Mapped[str] = mapped_column(Text, default="", server_default="")
+    holding_period: Mapped[str] = mapped_column(Text, default="", server_default="")
+    universe: Mapped[str] = mapped_column(Text, default="", server_default="")
+    point_in_time: Mapped[str] = mapped_column(Text, default="", server_default="")
+    methodology: Mapped[str] = mapped_column(Text, default="", server_default="")
+    limitations: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    implementation_variants: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    lookahead_concerns: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    missing_information: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: ``{"authorClaims": [...], "modelInterpretations": [...], "proposedHypotheses": [...]}``
+    claims: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: Every cited passage, each marked verified or not against the stored text.
+    evidence: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: source_backed | partially_supported | speculative
+    support: Mapped[str] = mapped_column(
+        String(24), default="speculative", server_default="speculative"
+    )
+    #: paper | abstract: how much of the source the idea was read from.
+    evidence_scope: Mapped[str] = mapped_column(String(12), default="paper", server_default="paper")
+    brain_assessment: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    #: Copied out of the assessment so the library can filter on it. Null: never assessed.
+    readiness: Mapped[str | None] = mapped_column(String(24))
+    #: new | saved | rejected
+    status: Mapped[str] = mapped_column(String(12), default="new", server_default="new")
+    note: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: Lower-cased title, hypothesis and variables, for the library's text search.
+    search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("ix_research_idea_source", "source_id"),
+        Index("ix_research_idea_status", "status", "readiness"),
+    )
+
+
+class AlphaCandidate(Base):
+    """A draft handed to the Alpha Builder: an idea, a scope and (later) an expression.
+
+    Draft only in this phase. Nothing creates one with a simulation attached, and no code path
+    from here reaches BRAIN: ``validation_outcome`` is a local check, never a result.
+    """
+
+    __tablename__ = "alpha_candidate"
+
+    id: Mapped[str] = mapped_column(
+        String(32), primary_key=True, default=lambda: research_id("cand")
+    )
+    idea_id: Mapped[str] = mapped_column(ForeignKey("research_idea.id", ondelete="CASCADE"))
+    #: Null until the Alpha Builder writes one.
+    expression: Mapped[str | None] = mapped_column(Text)
+    #: ``{"instrumentType", "region", "delay", "universe"}``: exactly where it would run.
+    scope: Mapped[dict[str, Any]] = mapped_column(JSON)
+    #: not_validated | valid | invalid
+    validation_outcome: Mapped[str] = mapped_column(
+        String(16), default="not_validated", server_default="not_validated"
+    )
+    validation_detail: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    status: Mapped[str] = mapped_column(String(12), default="draft", server_default="draft")
+    provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+    __table_args__ = (Index("uq_alpha_candidate_version", "idea_id", "version", unique=True),)

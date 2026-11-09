@@ -9,6 +9,7 @@ import asyncio
 import contextlib
 import time
 from datetime import timedelta
+from typing import Any
 
 import structlog
 from sqlalchemy import select
@@ -41,6 +42,7 @@ from .realtime import (
     TOPIC_TASKS,
     Hub,
 )
+from .research.service import ResearchService
 from .sealing import Sealer
 from .spc.service import SpcService
 from .tasks import TaskRegistry, cancel_background, spawn
@@ -112,6 +114,14 @@ class AppState:
         # search key from here, falling back to the legacy environment variables.
         self.web = WebResearchService(self.db, self.sealer)
         self.spc = SpcService(self.db, self.llm, self.settings.data_dir, self.tasks, web=self.web)
+        self.research = ResearchService(
+            self.db,
+            self.llm,
+            tasks=self.tasks,
+            queries=self.queries,
+            operators=self._research_operators,
+            web=self.web,
+        )
         self.optimizer = Optimizer(
             self.db,
             self.engine,
@@ -130,6 +140,11 @@ class AppState:
         self._restore_pending = False
 
     # -- lifecycle -------------------------------------------------------
+
+    async def _research_operators(self) -> list[dict[str, Any]] | None:
+        """The account's cached operator list, never fetched: assessing an idea reads only what
+        is already local, so it neither needs a session nor calls BRAIN."""
+        return await self.metadata.cached_operators()
 
     async def startup(self) -> None:
         # The catalog's single-writer lock is this process's claim on the data directory, so it
@@ -164,6 +179,7 @@ class AppState:
         await self.tracker.reconcile()
         # SPC runs are local text jobs, but one left "running" by a crash would say so forever.
         await self.spc.reconcile()
+        await self.research.reconcile()
 
         # A sync killed with the process would otherwise report RUNNING forever.
         try:
@@ -299,6 +315,7 @@ class AppState:
             with contextlib.suppress(asyncio.CancelledError):
                 await watch
         await self.spc.stop()
+        await self.research.stop()
         await self.optimizer.stop()
         await self.engine.stop()
         await self.tracker.stop()
