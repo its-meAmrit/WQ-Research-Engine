@@ -31,6 +31,7 @@ from .api import (
     catalog,
     chat,
     competitions,
+    discover,
     ga,
     integrations,
     lab_tasks,
@@ -194,6 +195,7 @@ def create_app() -> FastAPI:
     app.include_router(competitions.router)
     app.include_router(spc.router)
     app.include_router(research.router)
+    app.include_router(discover.router)
     app.include_router(update.router)
     app.include_router(preferences.router)
     app.include_router(ws.router)

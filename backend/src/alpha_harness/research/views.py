@@ -59,6 +59,9 @@ class SourceOut(Out):
     saved_idea_count: int
     has_text: bool
     created_at: str | None
+    source_class: str = ""
+    domain: str | None = None
+    registry_id: str | None = None
 
 
 class SourceDetail(SourceOut):
@@ -111,6 +114,12 @@ class IdeaSource(Out):
     published_at: str | None
     access_status: AccessStatus
     doi: str | None
+    source_type: str = "academic_paper"
+    source_class: str = ""
+    domain: str | None = None
+    canonical_url: str | None = None
+    import_method: str = "upload"
+    retrieved_at: str | None = None
 
 
 class CandidateOut(Out):
@@ -154,17 +163,49 @@ class IdeaOut(Out):
     claims: dict[str, Any]
     evidence: list[dict[str, Any]]
     support: Support
-    evidence_scope: Literal["paper", "abstract"]
+    evidence_scope: Literal["paper", "abstract", "web_page"]
     brain_assessment: dict[str, Any] | None
     readiness: Readiness | None
     status: Literal["new", "saved", "rejected"]
     note: str
+    expected_relationship: str = ""
+    brain_implementation: str = ""
+    assumptions: list[str] = Field(default_factory=list)
+    idea_kind: str = ""
+    favorite: bool = False
+    reviewed_at: str | None = None
+    #: Five separate indicators (source quality, specificity, BRAIN feasibility, novelty,
+    #: evidence quality). Never combined, and no Sharpe or return is estimated.
+    ranking: dict[str, Any] | None = None
     created_at: str | None
     updated_at: str | None
 
 
+class LinkedSource(Out):
+    source_id: str
+    title: str
+    canonical_url: str | None
+    domain: str | None
+    source_class: str
+    retrieved_at: str | None
+    matched_by: str
+    similarity: float | None
+    their_title: str
+    evidence: list[dict[str, Any]]
+
+
+class RelatedIdea(Out):
+    id: str
+    title: str
+    status: str
+    similarity: float
+    relation: str
+
+
 class IdeaDetail(IdeaOut):
     candidates: list[CandidateOut]
+    linked_sources: list[LinkedSource] = Field(default_factory=list)
+    related: list[RelatedIdea] = Field(default_factory=list)
 
 
 class SearchPaper(Out):
@@ -265,6 +306,8 @@ class AnalyzeRequest(Out):
 class IdeaPatch(Out):
     status: Literal["new", "saved", "rejected"] | None = None
     note: str | None = Field(default=None, max_length=5_000)
+    favorite: bool | None = None
+    reviewed: bool | None = None
 
 
 class ScopeRequest(Out):

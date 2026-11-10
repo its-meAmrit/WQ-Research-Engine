@@ -287,8 +287,20 @@ async def list_ideas(
         str | None, Query(pattern="^(source_backed|partially_supported|speculative)$")
     ] = None,
     search: Annotated[str | None, Query(max_length=200)] = None,
+    domain: Annotated[str | None, Query(max_length=255)] = None,
+    source_class: Annotated[str | None, Query(alias="sourceClass", max_length=24)] = None,
+    source_type: Annotated[str | None, Query(alias="sourceType", max_length=24)] = None,
+    kind: Annotated[str | None, Query(max_length=24)] = None,
+    favorite: bool | None = None,
+    reviewed: bool | None = None,
 ) -> list[IdeaOut]:
     rows = await state.research.list_ideas(
+        domain=domain,
+        source_class=source_class,
+        source_type=source_type,
+        kind=kind,
+        favorite=favorite,
+        reviewed=reviewed,
         source_id=source_id,
         status=status,
         readiness=readiness,
@@ -312,7 +324,13 @@ async def update_idea(idea_id: str, body: IdeaPatch, state: State) -> IdeaDetail
     """Save, reject or annotate an idea."""
     try:
         return IdeaDetail.model_validate(
-            await state.research.update_idea(idea_id, status=body.status, note=body.note)
+            await state.research.update_idea(
+                idea_id,
+                status=body.status,
+                note=body.note,
+                favorite=body.favorite,
+                reviewed=body.reviewed,
+            )
         )
     except ResearchError as exc:
         raise _refused(exc) from exc

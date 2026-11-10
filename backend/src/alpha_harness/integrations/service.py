@@ -101,6 +101,10 @@ class WebResearchService:
             transport=self._transport,
         )
 
+    def http_client(self) -> httpx2.AsyncClient:
+        """A client under this service's timeout and no-redirect policy, for adapters."""
+        return self._client()
+
     # -- which key -------------------------------------------------------
 
     async def _candidates(self, capability: Capability) -> list[IntegrationCredential]:

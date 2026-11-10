@@ -87,16 +87,50 @@ export interface Assessment {
   note: string
 }
 
+export type IndicatorLevel = 'high' | 'medium' | 'low' | 'unknown'
+
+/** One of the five ranking indicators. Each stands alone: there is no combined score, and none
+ *  of them estimates a Sharpe ratio or a return. */
+export interface Indicator {
+  level: IndicatorLevel
+  reasons: string[]
+  basis: string
+}
+
+export interface Ranking {
+  sourceQuality: Indicator
+  specificity: Indicator
+  brainFeasibility: Indicator
+  novelty: Indicator
+  evidenceQuality: Indicator
+}
+
 export type Idea = Omit<
   Schemas['IdeaOut'],
-  'claims' | 'evidence' | 'brainAssessment' | 'requiredVariables'
+  'claims' | 'evidence' | 'brainAssessment' | 'requiredVariables' | 'ranking'
 > & {
-  claims: Partial<Claims>
+  claims: Partial<Claims> & { reportedPerformance?: string[]; reportedPerformanceNote?: string }
   evidence: Evidence[]
   brainAssessment: Assessment | null
   requiredVariables: RequiredVariable[]
+  ranking: Ranking | null
 }
-export type IdeaDetail = Idea & { candidates: Candidate[] }
+export type LinkedSource = Schemas['LinkedSource']
+export type RelatedIdea = Schemas['RelatedIdea']
+export type IdeaDetail = Idea & {
+  candidates: Candidate[]
+  linkedSources: LinkedSource[]
+  related: RelatedIdea[]
+}
+
+export type RegistryEntry = Schemas['RegistryEntryOut']
+export type DiscoverOptions = Schemas['DiscoverOptions']
+export type DiscoverBody = Schemas['DiscoverRequest']
+export type Estimate = Schemas['EstimateOut']
+export type Hit = Schemas['HitOut']
+export type QueryProposal = Schemas['QueryProposal']
+export type DiscoverStarted = Schemas['DiscoverStarted']
+export type ExtractStarted = Schemas['ExtractStarted']
 
 export interface PaperFilters {
   search?: string
@@ -115,6 +149,12 @@ export interface IdeaFilters {
   topic?: string
   support?: string
   search?: string
+  domain?: string
+  sourceClass?: string
+  sourceType?: string
+  kind?: string
+  favorite?: boolean
+  reviewed?: boolean
 }
 
 export interface ScopeBody {
@@ -174,10 +214,39 @@ export const research = {
   cancelJob: (id: string) => http.post<Job>(`${B}/jobs/${id}/cancel`),
   ideas: (filters: IdeaFilters) => http.get<Idea[]>(`${B}/ideas${qs({ ...filters })}`),
   idea: (id: string) => http.get<IdeaDetail>(`${B}/ideas/${id}`),
-  patchIdea: (id: string, body: { status?: IdeaStatus; note?: string }) =>
-    http.patch<IdeaDetail>(`${B}/ideas/${id}`, body),
+  patchIdea: (
+    id: string,
+    body: { status?: IdeaStatus; note?: string; favorite?: boolean; reviewed?: boolean },
+  ) => http.patch<IdeaDetail>(`${B}/ideas/${id}`, body),
   assess: (id: string, scope: ScopeBody) =>
     http.post<IdeaDetail>(`${B}/ideas/${id}/assess`, { scope }),
   handOff: (id: string, scope: ScopeBody) =>
     http.post<Candidate>(`${B}/ideas/${id}/handoff`, { scope }),
+}
+
+const D = `${B}/discover`
+
+/** Discover: find public research, read what you pick, save its ideas. Searching reads results
+ *  only; reading a page is a separate request. Jobs are followed through `research.job`. */
+export const discover = {
+  options: () => http.get<DiscoverOptions>(`${D}/options`),
+  queries: (topic: string, market: string) =>
+    http.post<QueryProposal[]>(`${D}/queries`, { topic, market }),
+  estimate: (body: DiscoverBody, signal?: AbortSignal) =>
+    http.post<Estimate>(`${D}/estimate`, body, signal),
+  start: (body: DiscoverBody) => http.post<DiscoverStarted>(D, body),
+  hits: (jobId: string) => http.get<Hit[]>(`${D}/jobs/${jobId}/hits`),
+  extract: (body: {
+    hitIds: string[]
+    modelRef?: string | null
+    scope?: ScopeBody | null
+    depth?: 'basic' | 'advanced'
+  }) => http.post<ExtractStarted>(`${D}/extract`, body),
+  updateSource: (
+    id: string,
+    body: { enabled?: boolean; minIntervalSeconds?: number; domains?: string[] },
+  ) => http.patch<RegistryEntry>(`${D}/sources/${id}`, body),
+  addFeed: (label: string, feedUrl: string) =>
+    http.post<RegistryEntry>(`${D}/sources`, { label, feedUrl }),
+  removeSource: (id: string) => http.del<void>(`${D}/sources/${id}`),
 }

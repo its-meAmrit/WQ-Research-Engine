@@ -27,6 +27,7 @@ from ..db.models import (
     AlphaCandidate,
     ResearchDocument,
     ResearchIdea,
+    ResearchIdeaLink,
     ResearchJob,
     ResearchJobStatus,
     ResearchSource,
@@ -183,6 +184,15 @@ class ResearchService:
         self._why: dict[str, str] = {}
         self._stopping = False
 
+    @property
+    def llm_gate(self) -> asyncio.Semaphore:
+        """Shared by every model call a research job makes, so discovery and paper analysis
+        together stay under one concurrency cap."""
+        return self._llm_gate
+
+    def scholarly_client(self) -> Scholarly:
+        return self._scholarly()
+
     # --- lifecycle ----------------------------------------------------------------------
 
     async def reconcile(self) -> int:
@@ -305,6 +315,30 @@ class ResearchService:
     async def _progress(self, job_id: str, progress: float, message: str) -> None:
         await self._set_job(job_id, progress=progress, message=message)
 
+    # The discovery service runs its jobs the same way, so it uses these by their public names.
+
+    async def new_job(self, **values: Any) -> str:
+        return await self._new_job(**values)
+
+    async def set_job(self, job_id: str, **values: Any) -> None:
+        await self._set_job(job_id, **values)
+
+    def launch(self, job_id: str, label: str, work: Callable[[str], Awaitable[None]]) -> None:
+        self._launch(job_id, label, work)
+
+    async def progress(self, job_id: str, progress: float, message: str) -> None:
+        await self._progress(job_id, progress, message)
+
+    async def fail(
+        self,
+        job_id: str,
+        code: str,
+        message: str,
+        *,
+        detail: list[dict[str, Any]] | None = None,
+    ) -> None:
+        await self._fail(job_id, code, message, detail=detail)
+
     async def cancel_job(self, job_id: str) -> dict[str, Any]:
         job = await self._job_row(job_id)
         if ResearchJobStatus(job.status).terminal:
@@ -402,6 +436,9 @@ class ResearchService:
             "savedIdeaCount": saved,
             "hasText": has_text,
             "createdAt": _iso(source.created_at),
+            "sourceClass": source.source_class,
+            "domain": source.domain,
+            "registryId": source.registry_id,
         }
 
     async def list_sources(
@@ -536,6 +573,12 @@ class ResearchService:
                 raise ResearchError(
                     "job_running", "Cancel the running job on this paper first.", 409
                 )
+            own = select(ResearchIdea.id).where(ResearchIdea.source_id == source_id)
+            await session.execute(
+                delete(ResearchIdeaLink).where(
+                    or_(ResearchIdeaLink.source_id == source_id, ResearchIdeaLink.idea_id.in_(own))
+                )
+            )
             await session.execute(delete(ResearchIdea).where(ResearchIdea.source_id == source_id))
             await session.execute(delete(ResearchJob).where(ResearchJob.source_id == source_id))
             await session.execute(
@@ -1407,6 +1450,12 @@ class ResearchService:
                     "publishedAt": source.published_at,
                     "accessStatus": source.access_status,
                     "doi": source.doi,
+                    "sourceType": source.source_type,
+                    "sourceClass": source.source_class,
+                    "domain": source.domain,
+                    "canonicalUrl": source.canonical_url,
+                    "importMethod": source.import_method,
+                    "retrievedAt": _iso(source.retrieved_at),
                 }
                 if source
                 else None
@@ -1439,6 +1488,13 @@ class ResearchService:
             "readiness": idea.readiness,
             "status": idea.status,
             "note": idea.note,
+            "expectedRelationship": idea.expected_relationship,
+            "brainImplementation": idea.brain_implementation,
+            "assumptions": idea.assumptions,
+            "ideaKind": idea.idea_kind,
+            "favorite": idea.favorite,
+            "reviewedAt": _iso(idea.reviewed_at),
+            "ranking": idea.ranking,
             "createdAt": _iso(idea.created_at),
             "updatedAt": _iso(idea.updated_at),
         }
@@ -1452,6 +1508,12 @@ class ResearchService:
         topic: str | None = None,
         support: str | None = None,
         search: str | None = None,
+        domain: str | None = None,
+        source_class: str | None = None,
+        kind: str | None = None,
+        favorite: bool | None = None,
+        reviewed: bool | None = None,
+        source_type: str | None = None,
         limit: int = 200,
     ) -> list[dict[str, Any]]:
         stmt = (
@@ -1466,9 +1528,21 @@ class ResearchService:
             (ResearchIdea.readiness, readiness),
             (ResearchIdea.topic, topic),
             (ResearchIdea.support, support),
+            (ResearchIdea.idea_kind, kind),
+            (ResearchSource.domain, domain),
+            (ResearchSource.source_class, source_class),
+            (ResearchSource.source_type, source_type),
         ):
             if value:
                 stmt = stmt.where(column == value)
+        if favorite is not None:
+            stmt = stmt.where(ResearchIdea.favorite == favorite)
+        if reviewed is not None:
+            stmt = stmt.where(
+                ResearchIdea.reviewed_at.is_not(None)
+                if reviewed
+                else ResearchIdea.reviewed_at.is_(None)
+            )
         if search:
             for word in search.lower().split()[:6]:
                 stmt = stmt.where(ResearchIdea.search_text.like(f"%{word}%"))
@@ -1495,10 +1569,76 @@ class ResearchService:
             )
         view = self.idea_view(idea, source)
         view["candidates"] = [self.candidate_view(c) for c in candidates]
+        view["linkedSources"] = await self.linked_sources(idea_id)
+        view["related"] = await self.related_ideas(idea_id)
         return view
 
+    async def linked_sources(self, idea_id: str) -> list[dict[str, Any]]:
+        """The other sources that state this idea. The idea's own source is not repeated."""
+        async with self.db.session() as session:
+            rows = (
+                await session.execute(
+                    select(ResearchIdeaLink, ResearchSource)
+                    .join(ResearchSource, ResearchSource.id == ResearchIdeaLink.source_id)
+                    .where(ResearchIdeaLink.idea_id == idea_id)
+                    .order_by(ResearchIdeaLink.created_at)
+                )
+            ).all()
+        return [
+            {
+                "sourceId": src.id,
+                "title": src.title,
+                "canonicalUrl": src.canonical_url,
+                "domain": src.domain,
+                "sourceClass": src.source_class,
+                "retrievedAt": _iso(src.retrieved_at),
+                "matchedBy": link.matched_by,
+                "similarity": link.similarity,
+                "theirTitle": link.their_title,
+                "evidence": link.evidence,
+            }
+            for link, src in rows
+        ]
+
+    async def related_ideas(self, idea_id: str, *, limit: int = 5) -> list[dict[str, Any]]:
+        """Ideas in the library worded like this one but not the same: a neighbour to compare,
+        never a duplicate to merge."""
+        from .discover import dedupe
+
+        async with self.db.session() as session:
+            idea = await session.get(ResearchIdea, idea_id)
+            if idea is None:
+                raise ResearchError("idea_not_found", "There is no such idea.", 404)
+            others = (
+                (await session.execute(select(ResearchIdea).where(ResearchIdea.id != idea_id)))
+                .scalars()
+                .all()
+            )
+        mine = dedupe.view_row(idea)
+        scored = [(dedupe.similarity(mine, dedupe.view_row(o)), o) for o in others]
+        near = sorted(
+            ((v, o) for v, o in scored if dedupe.RELATED <= v < dedupe.SAME),
+            key=lambda pair: -pair[0],
+        )[:limit]
+        return [
+            {
+                "id": o.id,
+                "title": o.title,
+                "status": o.status,
+                "similarity": round(v, 2),
+                "relation": dedupe.classify(v),
+            }
+            for v, o in near
+        ]
+
     async def update_idea(
-        self, idea_id: str, *, status: str | None, note: str | None
+        self,
+        idea_id: str,
+        *,
+        status: str | None,
+        note: str | None,
+        favorite: bool | None = None,
+        reviewed: bool | None = None,
     ) -> dict[str, Any]:
         if status is not None and status not in {"new", "saved", "rejected"}:
             raise ResearchError("bad_status", "Status must be new, saved or rejected.", 422)
@@ -1507,6 +1647,10 @@ class ResearchService:
             values["status"] = status
         if note is not None:
             values["note"] = note[:MAX_NOTE_CHARS]
+        if favorite is not None:
+            values["favorite"] = favorite
+        if reviewed is not None:
+            values["reviewed_at"] = utcnow() if reviewed else None
         if values:
             async with self.db.session() as session:
                 result = await session.execute(

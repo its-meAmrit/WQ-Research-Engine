@@ -42,6 +42,8 @@ from .realtime import (
     TOPIC_TASKS,
     Hub,
 )
+from .research.discover.registry import Registry as SourceRegistry
+from .research.discover.service import DiscoveryService
 from .research.service import ResearchService
 from .sealing import Sealer
 from .spc.service import SpcService
@@ -122,6 +124,8 @@ class AppState:
             operators=self._research_operators,
             web=self.web,
         )
+        self.registry = SourceRegistry(self.db)
+        self.discovery = DiscoveryService(self.db, self.research, self.web, self.registry)
         self.optimizer = Optimizer(
             self.db,
             self.engine,
@@ -152,6 +156,7 @@ class AppState:
         await self.catalog.open()
         await asyncio.to_thread(snapshot, self.settings.sqlite_path, updates.current())
         await self.db.create_all()
+        await self.registry.seed()
         preferences.apply(self, await preferences.load(self.db))
         await self.models.load()
         # A catalog downloaded before the search index existed still has none; building it

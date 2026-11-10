@@ -357,6 +357,11 @@ def cache_key(
 # --- reading the model's answer -------------------------------------------------------------
 
 
+def json_object(raw: str) -> dict[str, Any]:
+    """The JSON object in a model's answer, fenced or not."""
+    return _json_object(raw)
+
+
 class ModelOutputError(Exception):
     """An answer that is not valid. ``problems`` are shown to the person as they are."""
 
