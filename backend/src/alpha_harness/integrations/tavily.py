@@ -13,10 +13,13 @@ from typing import TYPE_CHECKING, Any, Literal
 from .base import (
     CheckCost,
     CheckReport,
+    DocumentQuery,
     ExtractedPage,
     ExtractResult,
     ProviderSpec,
     ReportedUsage,
+    SearchHit,
+    SearchPage,
     read_json,
     refusal,
     safe_public_url,
@@ -53,6 +56,23 @@ SPEC = ProviderSpec(
         ),
     ),
 )
+
+
+#: Tavily's documented prices (https://docs.tavily.com/guides/api-credits), used only to show an
+#: estimate before a call. A search is 1 credit, or 2 at ``advanced`` depth; extraction is 1
+#: credit (2 advanced) per 5 URLs read successfully, and a failed URL is not charged.
+SEARCH_CREDITS = {"basic": 1, "advanced": 2}
+EXTRACT_CREDITS_PER_FIVE = {"basic": 1, "advanced": 2}
+MAX_RESULTS = 20
+
+
+def search_credits(depth: Literal["basic", "advanced"]) -> int:
+    return SEARCH_CREDITS[depth]
+
+
+def extract_credits(urls: int, depth: Literal["basic", "advanced"]) -> int:
+    """The most an extraction of ``urls`` pages can cost: every one succeeds."""
+    return -(-urls // 5) * EXTRACT_CREDITS_PER_FIVE[depth] if urls > 0 else 0
 
 
 def _section(body: dict[str, Any], name: str) -> dict[str, Any]:
@@ -104,6 +124,66 @@ class TavilySearch:
             for r in found
             if isinstance(r, dict)
         ]
+
+    max_results_cap: int = MAX_RESULTS
+
+    async def search_documents(
+        self, client: httpx2.AsyncClient, request: DocumentQuery
+    ) -> SearchPage:
+        """Documents for a query, with the filters Tavily documents: ``start_date`` and
+        ``end_date``, ``include_domains`` and ``exclude_domains``, and ``search_depth``.
+
+        The topic is ``general``: Tavily's ``news`` topic favours recent articles, which is the
+        wrong shape for research. Publication dates are asked for and kept as Tavily reports
+        them; Tavily calls its figure a best estimate, so a missing one is left missing.
+        """
+        payload: dict[str, Any] = {
+            "query": request.query,
+            "max_results": min(max(request.max_results, 1), MAX_RESULTS),
+            "search_depth": request.depth,
+            "topic": "general",
+            "include_answer": False,
+            "include_raw_content": False,
+            "include_published_date": True,
+            "include_usage": True,
+        }
+        if request.start_date:
+            payload["start_date"] = request.start_date
+        if request.end_date:
+            payload["end_date"] = request.end_date
+        if request.include_domains:
+            payload["include_domains"] = list(request.include_domains)
+        if request.exclude_domains:
+            payload["exclude_domains"] = list(request.exclude_domains)
+        response = await send(
+            client, "POST", f"{API}/search", label=LABEL, json=payload, headers=self._auth()
+        )
+        if response.status_code != 200:
+            raise refusal(LABEL, response)
+        body = read_json(LABEL, response)
+        hits = [
+            SearchHit(
+                url=str(r.get("url") or ""),
+                title=str(r.get("title") or ""),
+                snippet=str(r.get("content") or "")[:600],
+                published=r.get("published_date")
+                if isinstance(r.get("published_date"), str)
+                else None,
+                score=_number(r.get("score")),
+            )
+            for r in body.get("results") or []
+            if isinstance(r, dict) and r.get("url")
+        ]
+        usage = _section(body, "usage")
+        return SearchPage(
+            hits=hits,
+            credits=_number(usage.get("credits")),
+            notes=(
+                ["Publication dates are Tavily's own estimates and are missing for some results."]
+                if request.start_date or request.end_date
+                else []
+            ),
+        )
 
     async def extract(
         self, client: httpx2.AsyncClient, urls: list[str], *, depth: Literal["basic", "advanced"]

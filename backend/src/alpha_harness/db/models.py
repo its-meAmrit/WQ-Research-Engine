@@ -884,6 +884,15 @@ class ResearchSource(Base):
         String(24), default="pending", server_default="pending"
     )
     page_count: Mapped[int | None] = mapped_column(Integer)
+    #: What kind of document this is, as far as it could be told: research_paper |
+    #: documented_factor | trading_strategy | market_hypothesis | code_implementation |
+    #: unverified_claim | not_research. Empty for a source nobody classified (every paper that
+    #: came in as a PDF or a DOI is a paper).
+    source_class: Mapped[str] = mapped_column(String(24), default="", server_default="")
+    #: The host the document came from, lower-case, for the library's source filter.
+    domain: Mapped[str | None] = mapped_column(String(255))
+    #: The registry entry that found it (``research_registry.id``), when one did.
+    registry_id: Mapped[str | None] = mapped_column(String(48))
     metadata_: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
     provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
@@ -897,6 +906,7 @@ class ResearchSource(Base):
         Index("uq_research_source_url", "canonical_url", unique=True),
         Index("uq_research_source_hash", "content_hash", unique=True),
         Index("ix_research_source_created", "created_at"),
+        Index("ix_research_source_domain", "domain"),
     )
 
 
@@ -1053,12 +1063,32 @@ class ResearchIdea(Base):
     note: Mapped[str] = mapped_column(Text, default="", server_default="")
     #: Lower-cased title, hypothesis and variables, for the library's text search.
     search_text: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: What the source says should happen to future returns, in plain words.
+    expected_relationship: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: How the idea might be built on BRAIN, in words: the data to look for and the kind of
+    #: operators. Never an expression and never validated; the Alpha Builder writes those.
+    brain_implementation: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: What the idea assumes to be true.
+    assumptions: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: What the document the idea came from is: the idea's own reading of its source, which
+    #: can differ from the source's (a paper may hold a documented factor and a mere claim).
+    idea_kind: Mapped[str] = mapped_column(String(24), default="", server_default="")
+    favorite: Mapped[bool] = mapped_column(default=False, server_default="0")
+    #: When the person marked it reviewed; null: not reviewed. Separate from ``status``, which
+    #: is the decision (keep or drop); reviewing is having looked.
+    reviewed_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    #: Hash of the normalised hypothesis, so the same idea found again is recognised cheaply.
+    fingerprint: Mapped[str | None] = mapped_column(String(64))
+    #: The five separate indicators (source quality, specificity, BRAIN feasibility, novelty,
+    #: evidence quality), each with its reasons. Never summed into one number.
+    ranking: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
 
     __table_args__ = (
         Index("ix_research_idea_source", "source_id"),
         Index("ix_research_idea_status", "status", "readiness"),
+        Index("ix_research_idea_fingerprint", "fingerprint"),
     )
 
 
@@ -1090,3 +1120,136 @@ class AlphaCandidate(Base):
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
 
     __table_args__ = (Index("uq_alpha_candidate_version", "idea_id", "version", unique=True),)
+
+
+# --- Discovery -----------------------------------------------------------------------------
+#
+# Where web sources are found and what a search returned. A search and an extraction run as
+# ``ResearchJob`` rows (kinds ``discover`` and ``extract``), so cancellation, recovery after a
+# restart and the interrupted state are the ones the paper pipeline already has.
+
+
+class ResearchRegistryEntry(Base):
+    """One place research is looked for: its kind, how it is read, and how it has behaved.
+
+    Built-in entries are seeded from code at startup and keep what the person changed (the
+    switch, the interval). The quality note is set by whoever added the entry and says so; it
+    is never computed from how often an entry returned something.
+    """
+
+    __tablename__ = "research_registry"
+
+    id: Mapped[str] = mapped_column(String(48), primary_key=True)
+    label: Mapped[str] = mapped_column(String(120))
+    #: The host this entry reads, or ``*`` for an adapter that searches the open web.
+    domain: Mapped[str] = mapped_column(String(255), default="*", server_default="*")
+    #: academic_repository | research_blog | financial_article | strategy_repository |
+    #: user_url | rss_feed
+    category: Mapped[str] = mapped_column(String(32))
+    #: scholarly | tavily | rss | direct_url | github_readme
+    adapter: Mapped[str] = mapped_column(String(24))
+    enabled: Mapped[bool] = mapped_column(default=True, server_default="1")
+    #: ``{"robots": true, "fullText": "open_access_only" | "provider_extract" | "direct" |
+    #: "metadata_only", "maxPerJob": 10}``: what may be read from it and how.
+    retrieval_policy: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: Adapter settings: a feed's URL, the domains a web search is limited to.
+    config: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: Seconds between two reads of it. A read sooner than this is served from what is held.
+    min_interval_seconds: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    #: ``{"tier": "peer_reviewed_index" | "preprint_server" | "practitioner" | "unrated",
+    #: "basis": "...", "setBy": "built-in" | "user"}``.
+    quality: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    builtin: Mapped[bool] = mapped_column(default=False, server_default="0")
+    last_attempt_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    last_success_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    last_error: Mapped[str | None] = mapped_column(Text)
+    last_error_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
+
+
+class ResearchDiscoveryHit(Base):
+    """One result a discovery job returned: where it is, what it said about itself and what
+    became of it. Kept so a finished search can be reopened after a restart."""
+
+    __tablename__ = "research_discovery_hit"
+
+    id: Mapped[str] = mapped_column(
+        String(32), primary_key=True, default=lambda: research_id("hit")
+    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("research_job.id", ondelete="CASCADE"))
+    query: Mapped[str] = mapped_column(Text, default="", server_default="")
+    rank: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    provider: Mapped[str] = mapped_column(String(32), default="", server_default="")
+    registry_id: Mapped[str | None] = mapped_column(String(48))
+    url: Mapped[str] = mapped_column(Text)
+    canonical_url: Mapped[str | None] = mapped_column(Text)
+    domain: Mapped[str | None] = mapped_column(String(255))
+    title: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: What the search returned about the page. Short, from the provider, never the article.
+    snippet: Mapped[str] = mapped_column(Text, default="", server_default="")
+    published: Mapped[str | None] = mapped_column(String(32))
+    score: Mapped[float | None] = mapped_column(Float)
+    retrieved_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    #: found | duplicate | restricted | extracted | failed
+    status: Mapped[str] = mapped_column(String(16), default="found", server_default="found")
+    status_detail: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: The library source this became, once it was read.
+    source_id: Mapped[str | None] = mapped_column(String(32))
+    #: The earlier source or result this one repeats.
+    duplicate_of: Mapped[str | None] = mapped_column(String(32))
+    from_cache: Mapped[bool] = mapped_column(default=False, server_default="0")
+
+    __table_args__ = (
+        Index("ix_research_hit_job", "job_id", "rank"),
+        Index("ix_research_hit_canonical", "canonical_url"),
+    )
+
+
+class ResearchSearchCache(Base):
+    """A provider's answer to a request, kept so the same request is not paid for twice.
+
+    Holds the request with no credential in it. ``kind`` keeps a search and an extraction
+    apart because they are billed differently.
+    """
+
+    __tablename__ = "research_search_cache"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(32))
+    kind: Mapped[str] = mapped_column(String(12))
+    request: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    response: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: What it cost when it was made, as an estimate in the provider's credits.
+    credits: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(UtcDateTime)
+
+    __table_args__ = (Index("ix_research_cache_expires", "expires_at"),)
+
+
+class ResearchIdeaLink(Base):
+    """A further source that reports an idea already held.
+
+    The idea keeps the source it was first found in; every later source that states the same
+    hypothesis is linked here with the passages it contributed, so two sources on one factor
+    are never merged into one reference.
+    """
+
+    __tablename__ = "research_idea_link"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    idea_id: Mapped[str] = mapped_column(ForeignKey("research_idea.id", ondelete="CASCADE"))
+    source_id: Mapped[str] = mapped_column(ForeignKey("research_source.id", ondelete="CASCADE"))
+    #: How the match was made: ``fingerprint`` | ``similarity`` | ``manual``.
+    matched_by: Mapped[str] = mapped_column(String(16), default="similarity")
+    #: How alike the two statements are, 0-1, when matched by similarity.
+    similarity: Mapped[float | None] = mapped_column(Float)
+    #: What the other source says about the idea, as its own (verified) passages.
+    evidence: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: The title the other source gave the same idea.
+    their_title: Mapped[str] = mapped_column(Text, default="", server_default="")
+    job_id: Mapped[str | None] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+    __table_args__ = (UniqueConstraint("idea_id", "source_id", name="uq_research_idea_link"),)

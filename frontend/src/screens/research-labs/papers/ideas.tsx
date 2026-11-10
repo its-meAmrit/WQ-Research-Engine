@@ -13,6 +13,7 @@ import {
   Disclosure,
   Empty,
   ErrorNotice,
+  LINK,
   Notice,
   Panel,
   Skeleton,
@@ -22,7 +23,7 @@ import { Select } from '@/ui/overlay'
 import { ScopePicker } from '@/ui/scope-picker'
 import type { Assessment, Idea, IdeaDetail, IdeaStatus } from './api'
 import { research } from './api'
-import { KEYS, ReadinessBadge, SupportBadge } from './shared'
+import { KEYS, RankingView, ReadinessBadge, SupportBadge } from './shared'
 
 const ANY = 'any'
 const STATUS = [
@@ -82,7 +83,7 @@ function List({
 }: {
   title: string
   items: string[] | undefined
-  hint?: string
+  hint?: string | undefined
 }) {
   if (!items || items.length === 0) return null
   return (
@@ -108,14 +109,19 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
+export function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
   const client = useQueryClient()
   // The list already carries the whole idea; the candidates (drafts) come from the detail.
   const detail = useQuery({
     queryKey: ['research', 'idea', summary.id],
     queryFn: () => research.idea(summary.id),
   })
-  const idea: IdeaDetail = detail.data ?? { ...summary, candidates: [] }
+  const idea: IdeaDetail = detail.data ?? {
+    ...summary,
+    candidates: [],
+    linkedSources: [],
+    related: [],
+  }
   const refresh = (next: IdeaDetail) => {
     client.setQueryData(['research', 'idea', idea.id], next)
     void client.invalidateQueries({ queryKey: KEYS.ideas })
@@ -126,7 +132,12 @@ function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
   useEffect(() => setNote(idea.note), [idea.note])
 
   const patch = useMutation({
-    mutationFn: (body: { status?: IdeaStatus; note?: string }) => research.patchIdea(idea.id, body),
+    mutationFn: (body: {
+      status?: IdeaStatus
+      note?: string
+      favorite?: boolean
+      reviewed?: boolean
+    }) => research.patchIdea(idea.id, body),
     onSuccess: refresh,
   })
   const assess = useMutation({
@@ -159,6 +170,8 @@ function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
           <div className="flex flex-wrap gap-1.5">
             <SupportBadge support={idea.support} />
             <ReadinessBadge readiness={idea.readiness} />
+            {idea.favorite && <Badge tone="warn">Favourite</Badge>}
+            {idea.reviewedAt && <Badge tone="muted">Reviewed</Badge>}
             {idea.status !== 'new' && (
               <Badge tone={idea.status === 'saved' ? 'profit' : 'muted'}>
                 {idea.status === 'saved' ? 'Saved' : 'Rejected'}
@@ -167,7 +180,15 @@ function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
           </div>
         </div>
         <p className="text-caption text-ink-subtle">{idea.topic}</p>
+        <SourceLine idea={idea} />
       </header>
+
+      {idea.evidenceScope === 'web_page' && (
+        <Notice tone="info">
+          Taken from a public web page. Performance figures it quotes are the page's own claims;
+          they have not been checked or reproduced here.
+        </Notice>
+      )}
 
       {idea.evidenceScope === 'abstract' && (
         <Notice tone="warn">
@@ -197,7 +218,17 @@ function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
         hint="New, and not tested. Speculative until a simulation you run says otherwise."
       />
       <Row label="Economic explanation">{idea.economicHypothesis}</Row>
+      <Row label="Expected relationship">{idea.expectedRelationship}</Row>
       <Row label="Signal">{idea.signalDefinition}</Row>
+      <Row label="How it might be built on BRAIN">{idea.brainImplementation}</Row>
+      <List title="Assumptions" items={idea.assumptions} />
+      <List
+        title="Performance the source reports"
+        items={idea.claims.reportedPerformance}
+        hint={idea.claims.reportedPerformanceNote}
+      />
+      <RankingView ranking={idea.ranking} />
+      <LinkedSources idea={idea} />
 
       <Disclosure summary="Methodology and design">
         <div className="flex flex-col gap-3">
@@ -293,6 +324,15 @@ function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
         {handOff.isError && <ErrorNotice error={handOff.error} title="Could not hand this off" />}
         <div className="flex flex-wrap gap-2">
           <Button
+            variant={idea.favorite ? 'primary' : 'secondary'}
+            onClick={() => patch.mutate({ favorite: !idea.favorite })}
+          >
+            {idea.favorite ? 'Favourite' : 'Mark favourite'}
+          </Button>
+          <Button onClick={() => patch.mutate({ reviewed: !idea.reviewedAt })}>
+            {idea.reviewedAt ? 'Reviewed' : 'Mark reviewed'}
+          </Button>
+          <Button
             variant={idea.status === 'saved' ? 'primary' : 'secondary'}
             onClick={() => patch.mutate({ status: idea.status === 'saved' ? 'new' : 'saved' })}
           >
@@ -317,6 +357,80 @@ function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
         )}
       </footer>
     </article>
+  )
+}
+
+/** Where the idea came from: the page or paper, its site, when it was retrieved, and a link. */
+function SourceLine({ idea }: { idea: IdeaDetail }) {
+  const s = idea.source
+  if (!s) return null
+  const link = s.canonicalUrl ?? (s.doi ? `https://doi.org/${s.doi}` : null)
+  return (
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-ink-subtle">
+      <span className="break-words">{s.title}</span>
+      {s.domain && <Badge tone="outline">{s.domain}</Badge>}
+      {s.retrievedAt && <span>retrieved {s.retrievedAt.slice(0, 10)}</span>}
+      {link && (
+        <a href={link} target="_blank" rel="noopener noreferrer" className={LINK}>
+          Open source
+        </a>
+      )}
+    </p>
+  )
+}
+
+/** Other sources that state the same hypothesis, and neighbours worth comparing. */
+function LinkedSources({ idea }: { idea: IdeaDetail }) {
+  if (idea.linkedSources.length === 0 && idea.related.length === 0) return null
+  return (
+    <section className="flex flex-col gap-2 rounded-md border border-hairline p-3">
+      {idea.linkedSources.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <h4 className="text-caption font-medium text-ink-muted">
+            Also stated by {idea.linkedSources.length} other source
+            {idea.linkedSources.length === 1 ? '' : 's'}
+          </h4>
+          <ul className="flex flex-col gap-1 text-body-compact">
+            {idea.linkedSources.map((l) => (
+              <li key={l.sourceId} className="break-words">
+                {l.canonicalUrl ? (
+                  <a
+                    href={l.canonicalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={LINK}
+                  >
+                    {l.title}
+                  </a>
+                ) : (
+                  l.title
+                )}
+                <span className="text-caption text-ink-subtle">
+                  {' '}
+                  · matched by {l.matchedBy}
+                  {l.similarity != null ? ` (${Math.round(l.similarity * 100)}%)` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {idea.related.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <h4 className="text-caption font-medium text-ink-muted">Related ideas in your library</h4>
+          <ul className="list-disc pl-5 text-body-compact text-ink-muted">
+            {idea.related.map((r) => (
+              <li key={r.id}>
+                {r.title}{' '}
+                <span className="text-caption text-ink-subtle">
+                  ({r.relation}, {Math.round(r.similarity * 100)}%)
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
   )
 }
 

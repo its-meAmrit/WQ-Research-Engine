@@ -105,6 +105,55 @@ class ExtractResult:
     failed: list[tuple[str, str]] = field(default_factory=list)
 
 
+@dataclass(slots=True)
+class DocumentQuery:
+    """One search for documents to read, with the filters a provider can honour.
+
+    A provider ignores what it cannot do and says so in :attr:`SearchPage.notes`; it never
+    pretends a filter was applied.
+    """
+
+    query: str
+    max_results: int = 10
+    depth: Literal["basic", "advanced"] = "basic"
+    #: ``YYYY-MM-DD``. Inclusive bounds on publication date.
+    start_date: str | None = None
+    end_date: str | None = None
+    include_domains: tuple[str, ...] = ()
+    exclude_domains: tuple[str, ...] = ()
+
+
+@dataclass(slots=True)
+class SearchHit:
+    url: str
+    title: str
+    #: The provider's short excerpt. Never the page.
+    snippet: str
+    published: str | None = None
+    score: float | None = None
+
+
+@dataclass(slots=True)
+class SearchPage:
+    hits: list[SearchHit] = field(default_factory=list)
+    #: What the provider said the call cost, when it said. ``None`` means it did not.
+    credits: float | None = None
+    #: What was applied and what was not, in words for the person.
+    notes: list[str] = field(default_factory=list)
+
+
+@runtime_checkable
+class DocumentSearch(Protocol):
+    """A service that can search for documents with date and domain filters."""
+
+    #: The most results one call can return.
+    max_results_cap: int
+
+    async def search_documents(
+        self, client: httpx2.AsyncClient, request: DocumentQuery
+    ) -> SearchPage: ...
+
+
 class SearchProvider(Protocol):
     """What the SPC research step needs: raw results for a query."""
 

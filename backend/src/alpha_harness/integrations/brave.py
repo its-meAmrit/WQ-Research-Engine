@@ -13,9 +13,12 @@ from typing import TYPE_CHECKING, Any, Literal
 from .base import (
     CheckCost,
     CheckReport,
+    DocumentQuery,
     ExtractResult,
     ProviderSpec,
     ReportedUsage,
+    SearchHit,
+    SearchPage,
     read_json,
     refusal,
     send,
@@ -82,6 +85,38 @@ def reported_from(headers: Mapping[str, str]) -> ReportedUsage | None:
     )
 
 
+def _window(start: str) -> str:
+    """The Brave window that reaches back to ``start`` (``pd``, ``pw``, ``pm`` or ``py``)."""
+    try:
+        age = (datetime.now(UTC).date() - datetime.fromisoformat(start).date()).days
+    except ValueError:
+        return "py"
+    return "pd" if age <= 1 else "pw" if age <= 7 else "pm" if age <= 31 else "py"
+
+
+def _published(result: dict[str, Any]) -> str | None:
+    """The day a result says it was published, as ``YYYY-MM-DD``, or ``None``.
+
+    Brave's ``page_age`` is an ISO timestamp; its ``age`` is a phrase ("3 weeks ago") that is
+    not a date and is not guessed at.
+    """
+    raw = result.get("page_age")
+    if isinstance(raw, str):
+        try:
+            return datetime.fromisoformat(raw).date().isoformat()
+        except ValueError:
+            return None
+    return None
+
+
+def _within(published: str | None, start: str | None, end: str | None) -> bool:
+    """Whether a result with this date is inside the range. A result with no date is kept:
+    dropping it would hide a page for having no metadata."""
+    if published is None:
+        return True
+    return (not start or published >= start) and (not end or published <= end)
+
+
 @dataclass(slots=True)
 class BraveSearch:
     #: Out of ``repr``: a dataclass would otherwise print it into any log line or traceback.
@@ -128,6 +163,45 @@ class BraveSearch:
             for r in found
             if isinstance(r, dict)
         ]
+
+    max_results_cap: int = 10
+
+    async def search_documents(
+        self, client: httpx2.AsyncClient, request: DocumentQuery
+    ) -> SearchPage:
+        """Documents for a query. Brave has no date range or domain list that this adapter
+        relies on, so both are approximated and the page says how: the date range becomes the
+        nearest of Brave's day/week/month/year windows, ``site:`` limits the domains, and the
+        results are then trimmed to the range by their reported age where one is given."""
+        notes: list[str] = []
+        query = request.query
+        if request.include_domains:
+            query += " (" + " OR ".join(f"site:{d}" for d in request.include_domains) + ")"
+            notes.append("Domains were limited with site: operators in the query.")
+        for domain in request.exclude_domains:
+            query += f" -site:{domain}"
+        params: dict[str, Any] = {"q": query, "count": min(max(request.max_results, 1), 10)}
+        if request.start_date:
+            params["freshness"] = _window(request.start_date)
+            notes.append(
+                "Brave has no exact date range here: the nearest window was used and results "
+                "outside the dates, where Brave gives an age, were dropped."
+            )
+        body, _ = await self._get(client, params)
+        found = (body.get("web") or {}).get("results") or []
+        hits = [
+            SearchHit(
+                url=str(r.get("url") or ""),
+                title=str(r.get("title") or ""),
+                snippet=str(r.get("description") or "")[:600],
+                published=_published(r),
+            )
+            for r in found
+            if isinstance(r, dict) and r.get("url")
+        ]
+        if request.start_date or request.end_date:
+            hits = [h for h in hits if _within(h.published, request.start_date, request.end_date)]
+        return SearchPage(hits=hits, credits=1.0, notes=notes)
 
     async def extract(
         self,
