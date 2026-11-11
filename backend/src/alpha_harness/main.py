@@ -26,6 +26,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import updates
 from .api import (
+    alpha_builder,
     alphas,
     auth,
     catalog,
@@ -195,6 +196,7 @@ def create_app() -> FastAPI:
     app.include_router(competitions.router)
     app.include_router(spc.router)
     app.include_router(research.router)
+    app.include_router(alpha_builder.router)
     app.include_router(discover.router)
     app.include_router(update.router)
     app.include_router(preferences.router)

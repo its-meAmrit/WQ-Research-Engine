@@ -250,3 +250,130 @@ export const discover = {
     http.post<RegistryEntry>(`${D}/sources`, { label, feedUrl }),
   removeSource: (id: string) => http.del<void>(`${D}/sources/${id}`),
 }
+
+const AB = `${B}/builder`
+
+export type BuilderOptions = Schemas['BuilderOptions']
+export type BuilderCandidate = Schemas['BuilderCandidate']
+export type BuilderPreview = Schemas['BuilderPreview']
+export type BuilderResults = Schemas['BuilderResults']
+export type BuilderLineage = Schemas['BuilderLineage']
+export type FieldHit = Schemas['BuilderFieldHit']
+export type JobStarted = Schemas['BuilderJobStarted']
+
+/** The matcher's reading of one variable. The backend sends these as free-form JSON; this is
+ *  the shape it writes (see `alpha_builder/matcher.py`). */
+export interface MappedField {
+  fieldId: string
+  datasetId: string | null
+  datasetName: string | null
+  description: string
+  fieldType: string | null
+  coverage: number | null
+  category: string | null
+  pointInTime: string
+}
+
+export interface MappingEntry {
+  name: string
+  meaning: string
+  kind: string
+  essential: boolean
+  expectedType: string
+  sourceBacked: boolean
+  searchTerms: string[]
+  status: 'exact' | 'proxy' | 'manual' | 'missing' | 'other_scope' | 'unsupported'
+  selected: MappedField | null
+  final: MappedField | null
+  candidates: MappedField[]
+  availableElsewhere: { fieldId: string; region: string; delay: number; universe: string }[]
+  rationale: string
+  approximation: string | null
+  needsConfirmation: boolean
+  typeNote: string | null
+  usable: boolean
+  blockedReason: string | null
+}
+
+export interface SignalDesign {
+  economic_hypothesis: string
+  signal_construction: string
+  variables: { name: string; meaning: string; source_backed: boolean; expected_type: string }[]
+  transformations: { step: string; operators: string[]; source_backed: boolean }[]
+  expected_direction: string
+  direction_basis: string
+  lookback: string
+  data_timing_assumptions: string
+  relevant_operators: string[]
+  unknown_operators?: string[]
+  implementation_limitations: string[]
+  candidate_design: string
+  adaptations: { change: string; why: string }[]
+  not_carried_over: string[]
+}
+
+export type Design = Omit<Schemas['BuilderDesign'], 'mapping' | 'design' | 'blocked'> & {
+  blocked: { variable: string; reason: string | null; essential: boolean }[]
+  mapping: MappingEntry[]
+  design: SignalDesign
+}
+
+export interface Check {
+  code: string
+  severity: 'block' | 'review'
+  message: string
+}
+
+export interface Validation {
+  outcome: 'valid' | 'needs_review' | 'blocked'
+  checks: Check[]
+  fieldsUsed: string[]
+  operatorsUsed: string[]
+  complexity: { operators: number; depth: number; fields: number } | null
+  notChecked: string[]
+  validatedAt: string
+}
+
+export type SimSettings = Record<string, string | number | boolean | null>
+
+export const builder = {
+  options: () => http.get<BuilderOptions>(`${AB}/options`),
+  designs: (ideaId: string) => http.get<Design[]>(`${AB}/ideas/${ideaId}/designs`),
+  candidates: (ideaId: string) => http.get<BuilderCandidate[]>(`${AB}/ideas/${ideaId}/candidates`),
+  design: (ideaId: string, scope: ScopeBody, modelRef: string | null) =>
+    http.post<JobStarted>(`${AB}/ideas/${ideaId}/design`, { scope, modelRef }),
+  patchMapping: (
+    id: string,
+    body: { substitutions?: Record<string, string>; acceptedProxies?: string[] },
+  ) => http.patch<Design>(`${AB}/designs/${id}/mapping`, body),
+  searchFields: (scope: ScopeBody, text: string) =>
+    http.post<FieldHit[]>(`${AB}/fields/search`, { scope, text }),
+  variants: (
+    id: string,
+    body: {
+      settings: SimSettings
+      settingsConfirmed: boolean
+      count: number
+      kinds?: string[]
+      modelRef: string | null
+    },
+  ) => http.post<JobStarted>(`${AB}/designs/${id}/variants`, body),
+  check: (id: string, body: { expression?: string; settings?: SimSettings }) =>
+    http.post<Validation>(`${AB}/candidates/${id}/check`, body),
+  revalidate: (id: string) => http.post<BuilderCandidate>(`${AB}/candidates/${id}/revalidate`),
+  revise: (id: string, body: { expression?: string; settings?: SimSettings; note?: string }) =>
+    http.post<BuilderCandidate>(`${AB}/candidates/${id}/revise`, body),
+  save: (id: string) => http.post<BuilderCandidate>(`${AB}/candidates/${id}/save`),
+  preview: (candidateIds: string[]) => http.post<BuilderPreview>(`${AB}/preview`, { candidateIds }),
+  createTask: (body: {
+    candidateIds: string[]
+    idempotencyKey: string
+    confirm: boolean
+    acknowledgeReview: boolean
+  }) => http.post<Schemas['BuilderTask']>(`${AB}/tasks`, body),
+  results: (id: string) => http.get<BuilderResults>(`${AB}/candidates/${id}/results`),
+  lineage: (id: string) => http.get<BuilderLineage>(`${AB}/candidates/${id}/lineage`),
+  refine: (id: string, modelRef: string | null) =>
+    http.post<JobStarted>(`${AB}/candidates/${id}/refine`, { modelRef }),
+  export: (id: string) => http.get<Record<string, unknown>>(`${AB}/candidates/${id}/export`),
+}

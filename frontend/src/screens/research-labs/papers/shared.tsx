@@ -1,7 +1,7 @@
 /** Labels, badges and the job-polling hook the Paper Analyzer's parts share. */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { createContext, useContext, useEffect, useRef } from 'react'
 import { Badge, Disclosure } from '@/ui/kit'
 import {
   type Access,
@@ -23,6 +23,10 @@ export const KEYS = {
   discover: ['research', 'discover'] as const,
   hits: (jobId: string) => ['research', 'discover', 'hits', jobId] as const,
 }
+
+/** Opens the Alpha Builder on an idea. Provided by the Research Intelligence screen. */
+export const BuilderLauncher = createContext<(ideaId: string) => void>(() => undefined)
+export const useBuilderLauncher = () => useContext(BuilderLauncher)
 
 export const ACCESS_LABEL: Record<Access, string> = {
   full_text: 'Full text',
@@ -64,6 +68,9 @@ export const JOB_KIND: Record<string, string> = {
   search: 'Search',
   discover: 'Discovery',
   extract: 'Extraction',
+  design: 'Signal design',
+  variants: 'Alpha variants',
+  refine: 'Refinement',
 }
 
 /**
@@ -88,6 +95,7 @@ export function useJobs(): { jobs: Job[]; active: Job[]; isError: boolean } {
       void client.invalidateQueries({ queryKey: KEYS.papers })
       void client.invalidateQueries({ queryKey: KEYS.ideas })
       void client.invalidateQueries({ queryKey: ['research', 'paper'] })
+      void client.invalidateQueries({ queryKey: ['research', 'builder'] })
     }
   }, [active, client])
   return { jobs, active, isError: query.isError }
