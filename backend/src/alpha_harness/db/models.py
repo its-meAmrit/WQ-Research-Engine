@@ -1041,7 +1041,7 @@ class ResearchIdea(Base):
     universe: Mapped[str] = mapped_column(Text, default="", server_default="")
     point_in_time: Mapped[str] = mapped_column(Text, default="", server_default="")
     methodology: Mapped[str] = mapped_column(Text, default="", server_default="")
-    limitations: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    limitations: Mapped[list[Any]] = mapped_column(JSON, default=list, server_default="[]")
     implementation_variants: Mapped[list[Any]] = mapped_column(JSON, default=list)
     lookahead_concerns: Mapped[list[Any]] = mapped_column(JSON, default=list)
     missing_information: Mapped[list[Any]] = mapped_column(JSON, default=list)
@@ -1092,11 +1092,45 @@ class ResearchIdea(Base):
     )
 
 
-class AlphaCandidate(Base):
-    """A draft handed to the Alpha Builder: an idea, a scope and (later) an expression.
+class AlphaBuilderDesign(Base):
+    """What the model proposed for one idea in one exact scope, and how its data was matched.
 
-    Draft only in this phase. Nothing creates one with a simulation attached, and no code path
-    from here reaches BRAIN: ``validation_outcome`` is a local check, never a result.
+    A design is the signal design (variables, transformations, direction, operators) plus the
+    Data Field Matcher's reading of it against the local catalogue, in one scope. It holds no
+    expression: candidates written from it do. Never rewritten once candidates exist from it;
+    the person's substitutions are kept under ``substitutions`` beside what the matcher found.
+    """
+
+    __tablename__ = "alpha_builder_design"
+
+    id: Mapped[str] = mapped_column(
+        String(32), primary_key=True, default=lambda: research_id("dsgn")
+    )
+    idea_id: Mapped[str] = mapped_column(ForeignKey("research_idea.id", ondelete="CASCADE"))
+    #: ``{"instrumentType", "region", "delay", "universe"}``: exactly where it would run.
+    scope: Mapped[dict[str, Any]] = mapped_column(JSON)
+    #: The model's validated structured proposal, as it returned it.
+    design: Mapped[dict[str, Any]] = mapped_column(JSON)
+    #: The matcher's reading of each variable: candidates, status, rationale.
+    mapping: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    #: ``{variable name: field id}`` the person chose in place of the matcher's pick.
+    substitutions: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    #: Variables whose proxy the person accepted, by name.
+    accepted_proxies: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    model_ref: Mapped[str | None] = mapped_column(String(300))
+    job_id: Mapped[str | None] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+
+    __table_args__ = (Index("ix_alpha_builder_design_idea", "idea_id", "created_at"),)
+
+
+class AlphaCandidate(Base):
+    """A candidate Fast Expression for one idea, in one scope, at one version.
+
+    Immutable where it matters: the expression, the settings and the scope are written once.
+    Changing any of them makes the next version, with this one as its parent; only the
+    validation reading, the status and the task link move on a row. No code path here
+    simulates: ``validation_outcome`` is a local static check, never a result from BRAIN.
     """
 
     __tablename__ = "alpha_candidate"
@@ -1105,21 +1139,55 @@ class AlphaCandidate(Base):
         String(32), primary_key=True, default=lambda: research_id("cand")
     )
     idea_id: Mapped[str] = mapped_column(ForeignKey("research_idea.id", ondelete="CASCADE"))
-    #: Null until the Alpha Builder writes one.
+    #: Null for the empty draft the Paper Analyzer hands off; the Alpha Builder writes one.
     expression: Mapped[str | None] = mapped_column(Text)
     #: ``{"instrumentType", "region", "delay", "universe"}``: exactly where it would run.
     scope: Mapped[dict[str, Any]] = mapped_column(JSON)
-    #: not_validated | valid | invalid
+    #: not_validated | valid | needs_review | blocked (older rows may read ``invalid``)
     validation_outcome: Mapped[str] = mapped_column(
         String(16), default="not_validated", server_default="not_validated"
     )
     validation_detail: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    #: draft | saved | tasked
     status: Mapped[str] = mapped_column(String(12), default="draft", server_default="draft")
     provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
 
-    __table_args__ = (Index("uq_alpha_candidate_version", "idea_id", "version", unique=True),)
+    # -- Alpha Builder ------------------------------------------------------------------
+    design_id: Mapped[str | None] = mapped_column(
+        ForeignKey("alpha_builder_design.id", ondelete="SET NULL")
+    )
+    #: The candidate this one was changed from: a variant's base, an edit's original, the
+    #: tested candidate a refinement starts from.
+    parent_id: Mapped[str | None] = mapped_column(String(32))
+    #: replication | simplified | proxy | direction | normalization | event_aware | robust |
+    #: manual_edit | refinement
+    variant_kind: Mapped[str | None] = mapped_column(String(24))
+    #: The complete simulation settings, as they would be sent.
+    settings: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    #: Why this candidate: the model's explanation, which parts follow the source and which
+    #: are adaptations, and how it relates to the source hypothesis.
+    explanation: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    #: What differs from the parent, in words.
+    changes: Mapped[list[Any]] = mapped_column(JSON, default=list, server_default="[]")
+    limitations: Mapped[list[Any]] = mapped_column(JSON, default=list, server_default="[]")
+    #: Read from the parsed expression, never from the model: the fields and operators it uses.
+    fields_used: Mapped[list[Any]] = mapped_column(JSON, default=list, server_default="[]")
+    operators_used: Mapped[list[Any]] = mapped_column(JSON, default=list, server_default="[]")
+    #: Hash of expression plus settings: the same pair is the same simulation.
+    fingerprint: Mapped[str | None] = mapped_column(String(64))
+    saved_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
+    #: The task made from it, and the key the request carried: a repeated click finds these.
+    study_id: Mapped[int | None] = mapped_column(ForeignKey("study.id", ondelete="SET NULL"))
+    task_key: Mapped[str | None] = mapped_column(String(64))
+    note: Mapped[str] = mapped_column(Text, default="", server_default="")
+
+    __table_args__ = (
+        Index("uq_alpha_candidate_version", "idea_id", "version", unique=True),
+        Index("ix_alpha_candidate_parent", "parent_id"),
+        Index("ix_alpha_candidate_study", "study_id"),
+    )
 
 
 # --- Discovery -----------------------------------------------------------------------------

@@ -339,10 +339,10 @@ def plan(schema: dict[str, Any], text: str) -> dict[str, Any]:
             }
         )
     queued = ordered(requests)
-    return {"alphas": alphas, "requests": queued, "batches": len(_chunks(queued))}
+    return {"alphas": alphas, "requests": queued, "batches": len(chunks(queued))}
 
 
-def _chunks(requests: list[SimulationRequest]) -> list[tuple[SimulationRequest, ...]]:
+def chunks(requests: list[SimulationRequest]) -> list[tuple[SimulationRequest, ...]]:
     """The Multi-Simulations these requests fill: every child shares BRAIN's batch key."""
     groups: dict[Any, list[SimulationRequest]] = {}
     for request in requests:
@@ -372,5 +372,5 @@ def ordered(requests: list[SimulationRequest]) -> list[SimulationRequest]:
         key = key_of(chunk[0].model_dump(by_alias=True, exclude_none=True))
         return len(chunk) == key.max_batch
 
-    chunks = sorted(_chunks(requests), key=lambda c: (not full(c), -cost(c), -len(c)))
-    return [request for chunk in chunks for request in chunk]
+    best_first = sorted(chunks(requests), key=lambda c: (not full(c), -cost(c), -len(c)))
+    return [request for chunk in best_first for request in chunk]

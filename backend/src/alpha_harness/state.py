@@ -16,6 +16,7 @@ from sqlalchemy import select
 
 from . import preferences, updates
 from .account import AuthService, PlatformMetadata
+from .alpha_builder.service import AlphaBuilderService
 from .brain.client import BrainClient
 from .brain.endpoints import BrainEndpoints
 from .brain.errors import BrainError, BrainTransportError
@@ -123,6 +124,18 @@ class AppState:
             queries=self.queries,
             operators=self._research_operators,
             web=self.web,
+        )
+        # Alpha Builder: designs and candidates from approved ideas. Tasks it makes go through
+        # ``add_study`` on this state, so the one scheduler runs them; it has none of its own.
+        self.builder = AlphaBuilderService(
+            self.db,
+            self.llm,
+            self.research,
+            self.queries,
+            operators=self._research_operators,
+            schema=self.metadata.cached_settings_schema,
+            alphas=self.alphas.by_ids,
+            host=self,
         )
         self.registry = SourceRegistry(self.db)
         self.discovery = DiscoveryService(self.db, self.research, self.web, self.registry)

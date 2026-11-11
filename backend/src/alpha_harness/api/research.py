@@ -43,11 +43,11 @@ TOPICS = [
 ]  # fmt: skip
 
 
-def _refused(exc: ResearchError) -> Exception:
+def refused(exc: ResearchError) -> Exception:
     return refuse(exc.status, exc.code, str(exc))
 
 
-def _scope(scope: ScopeIn) -> Tuple4:
+def scope_of(scope: ScopeIn) -> Tuple4:
     return Tuple4(
         instrument_type=scope.instrument_type,
         region=scope.region,
@@ -118,7 +118,7 @@ async def upload(
     try:
         return _started(await state.research.import_pdf(filename, bytes(body)))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.post("/papers/import", status_code=202)
@@ -127,7 +127,7 @@ async def import_paper(body: ImportRequest, state: State) -> StartedOut:
     try:
         return _started(await state.research.import_reference(body.reference))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.get("/papers")
@@ -160,7 +160,7 @@ async def get_paper(source_id: str, state: State) -> SourceDetail:
     try:
         return SourceDetail.model_validate(await state.research.get_source(source_id))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.delete("/papers/{source_id}", status_code=204)
@@ -169,7 +169,7 @@ async def delete_paper(source_id: str, state: State) -> None:
     try:
         await state.research.delete_source(source_id)
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.get("/papers/{source_id}/pages/{page}")
@@ -178,7 +178,7 @@ async def get_page(source_id: str, page: int, state: State) -> PageOut:
     try:
         return PageOut.model_validate(await state.research.get_pages(source_id, page))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.get("/papers/{source_id}/preview")
@@ -193,7 +193,7 @@ async def preview(
             await state.research.preview(source_id, budget=char_budget)
         )
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.post("/papers/{source_id}/analyze", status_code=202)
@@ -203,14 +203,14 @@ async def analyze(source_id: str, body: AnalyzeRequest, state: State) -> Started
         return _started(
             await state.research.analyze(
                 source_id,
-                scope=_scope(body.scope) if body.scope else None,
+                scope=scope_of(body.scope) if body.scope else None,
                 model_ref=body.model_ref,
                 budget=body.char_budget,
                 force=body.force,
             )
         )
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 # --- search ---------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ async def search(
             await state.research.search(q, semantic=semantic, include_web=web)
         )
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.post("/search/import", status_code=202)
@@ -244,7 +244,7 @@ async def import_result(body: CandidateImport, state: State) -> StartedOut:
     try:
         return _started(await state.research.import_reference(reference))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 # --- jobs -----------------------------------------------------------------------------------
@@ -262,7 +262,7 @@ async def get_job(job_id: str, state: State) -> JobOut:
     try:
         return JobOut.model_validate(await state.research.get_job(job_id))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.post("/jobs/{job_id}/cancel")
@@ -270,7 +270,7 @@ async def cancel_job(job_id: str, state: State) -> JobOut:
     try:
         return JobOut.model_validate(await state.research.cancel_job(job_id))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 # --- ideas ----------------------------------------------------------------------------------
@@ -316,7 +316,7 @@ async def get_idea(idea_id: str, state: State) -> IdeaDetail:
     try:
         return IdeaDetail.model_validate(await state.research.get_idea(idea_id))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.patch("/ideas/{idea_id}")
@@ -333,7 +333,7 @@ async def update_idea(idea_id: str, body: IdeaPatch, state: State) -> IdeaDetail
             )
         )
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.post("/ideas/{idea_id}/assess")
@@ -341,9 +341,9 @@ async def assess(idea_id: str, body: ScopeRequest, state: State) -> IdeaDetail:
     """Check an idea's data and operators against one BRAIN scope. Reads the local catalogue
     and the cached operator list; nothing is sent to BRAIN."""
     try:
-        return IdeaDetail.model_validate(await state.research.assess(idea_id, _scope(body.scope)))
+        return IdeaDetail.model_validate(await state.research.assess(idea_id, scope_of(body.scope)))
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 @router.post("/ideas/{idea_id}/handoff", status_code=201)
@@ -351,10 +351,10 @@ async def hand_off(idea_id: str, body: ScopeRequest, state: State) -> CandidateO
     """Record a draft for the Alpha Builder. A draft only: no expression, no simulation."""
     try:
         return CandidateOut.model_validate(
-            await state.research.hand_off(idea_id, _scope(body.scope))
+            await state.research.hand_off(idea_id, scope_of(body.scope))
         )
     except ResearchError as exc:
-        raise _refused(exc) from exc
+        raise refused(exc) from exc
 
 
 _ = pdf  # the limits live on the service; imported so a change there is seen by this module

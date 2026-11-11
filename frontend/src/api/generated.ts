@@ -1670,6 +1670,360 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/builder/candidates/{candidate_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Candidate */
+        get: operations["get_candidate_api_research_builder_candidates__candidate_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check
+         * @description Validate an edit without keeping it. Free; nothing is stored.
+         */
+        post: operations["check_api_research_builder_candidates__candidate_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export */
+        get: operations["export_api_research_builder_candidates__candidate_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/lineage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lineage */
+        get: operations["lineage_api_research_builder_candidates__candidate_id__lineage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/refine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refine
+         * @description Ask for refinement drafts from a simulated candidate's real results.
+         */
+        post: operations["refine_api_research_builder_candidates__candidate_id__refine_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Results */
+        get: operations["results_api_research_builder_candidates__candidate_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/revalidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revalidate */
+        post: operations["revalidate_api_research_builder_candidates__candidate_id__revalidate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revise
+         * @description An edit is a new version; the candidate it came from is left as it was.
+         */
+        post: operations["revise_api_research_builder_candidates__candidate_id__revise_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/candidates/{candidate_id}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save */
+        post: operations["save_api_research_builder_candidates__candidate_id__save_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/designs/{design_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Design */
+        get: operations["get_design_api_research_builder_designs__design_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/designs/{design_id}/mapping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Mapping
+         * @description Substitute a field or accept a proxy. A field outside the scope is refused.
+         */
+        patch: operations["patch_mapping_api_research_builder_designs__design_id__mapping_patch"];
+        trace?: never;
+    };
+    "/api/research/builder/designs/{design_id}/variants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Variants
+         * @description Write candidate expressions from a reviewed design. Drafts only; one LLM request.
+         */
+        post: operations["start_variants_api_research_builder_designs__design_id__variants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/fields/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Fields
+         * @description Fields in exactly this scope, to choose a substitution from.
+         */
+        post: operations["search_fields_api_research_builder_fields_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/ideas/{idea_id}/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Candidates */
+        get: operations["candidates_api_research_builder_ideas__idea_id__candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/ideas/{idea_id}/design": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Design
+         * @description Ask the model for a signal design for this idea in this exact scope. Spends one LLM
+         *     request; sends nothing to BRAIN. Follow the job under ``/api/research/jobs``.
+         */
+        post: operations["start_design_api_research_builder_ideas__idea_id__design_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/ideas/{idea_id}/designs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Designs */
+        get: operations["designs_api_research_builder_ideas__idea_id__designs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Options
+         * @description BRAIN's settings choices and the markets that are downloaded.
+         */
+        get: operations["options_api_research_builder_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview
+         * @description The task exactly as it would be made. Read-only: simulates nothing, stores nothing.
+         */
+        post: operations["preview_api_research_builder_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/builder/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Task
+         * @description Store an idle task for saved candidates. It starts only when the person starts it.
+         */
+        post: operations["create_task_api_research_builder_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/discover": {
         parameters: {
             query?: never;
@@ -3785,6 +4139,354 @@ export interface components {
             custom?: components["schemas"]["CustomReshape"][];
             /** Recipes */
             recipes?: string[];
+        };
+        /** BuilderCandidate */
+        BuilderCandidate: {
+            /** Changes */
+            changes: string[];
+            /** Createdat */
+            createdAt: string | null;
+            /** Designid */
+            designId: string | null;
+            /** Explanation */
+            explanation: {
+                [key: string]: unknown;
+            } | null;
+            /** Expression */
+            expression: string | null;
+            /** Fieldsused */
+            fieldsUsed: string[];
+            /** Id */
+            id: string;
+            /** Ideaid */
+            ideaId: string;
+            /** Limitations */
+            limitations: string[];
+            /** Note */
+            note: string;
+            /** Operatorsused */
+            operatorsUsed: string[];
+            /** Parentid */
+            parentId: string | null;
+            /** Provenance */
+            provenance: {
+                [key: string]: unknown;
+            };
+            /** Savedat */
+            savedAt: string | null;
+            /** Scope */
+            scope: {
+                [key: string]: unknown;
+            };
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            } | null;
+            /** Status */
+            status: string;
+            /** Studyid */
+            studyId: number | null;
+            /** Validationdetail */
+            validationDetail: {
+                [key: string]: unknown;
+            } | null;
+            /** Validationoutcome */
+            validationOutcome: string;
+            /** Variantkind */
+            variantKind: string | null;
+            /** Version */
+            version: number;
+        };
+        /** BuilderDesign */
+        BuilderDesign: {
+            /** Acceptedproxies */
+            acceptedProxies: string[];
+            /** Blocked */
+            blocked: {
+                [key: string]: unknown;
+            }[];
+            /** Createdat */
+            createdAt: string | null;
+            /** Design */
+            design: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id: string;
+            /** Ideaid */
+            ideaId: string;
+            /** Jobid */
+            jobId: string | null;
+            /** Mapping */
+            mapping: {
+                [key: string]: unknown;
+            }[];
+            /** Modelref */
+            modelRef: string | null;
+            /** Scope */
+            scope: {
+                [key: string]: unknown;
+            };
+            /** Substitutions */
+            substitutions: {
+                [key: string]: string;
+            };
+        };
+        /** BuilderDesignRequest */
+        BuilderDesignRequest: {
+            /** Modelref */
+            modelRef?: string | null;
+            scope: components["schemas"]["ScopeIn"];
+        };
+        /** BuilderEditRequest */
+        BuilderEditRequest: {
+            /** Expression */
+            expression?: string | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** BuilderFieldHit */
+        BuilderFieldHit: {
+            /** Category */
+            category: string | null;
+            /** Coverage */
+            coverage: number | null;
+            /** Datasetid */
+            datasetId: string | null;
+            /** Datasetname */
+            datasetName: string | null;
+            /** Description */
+            description: string;
+            /** Fieldid */
+            fieldId: string;
+            /** Fieldtype */
+            fieldType: string | null;
+            /** Pointintime */
+            pointInTime: string;
+        };
+        /** BuilderFieldSearch */
+        BuilderFieldSearch: {
+            scope: components["schemas"]["ScopeIn"];
+            /** Text */
+            text: string;
+        };
+        /** BuilderJobStarted */
+        BuilderJobStarted: {
+            /** Jobid */
+            jobId: string;
+            /** Message */
+            message: string;
+        };
+        /** BuilderLineage */
+        BuilderLineage: {
+            /** Expressions */
+            expressions: number;
+            /** Ideaid */
+            ideaId: string;
+            /** Multipletestingwarning */
+            multipleTestingWarning: string | null;
+            /** Note */
+            note: string;
+            /** Tested */
+            tested: {
+                [key: string]: unknown;
+            }[];
+            /** Versions */
+            versions: number;
+        };
+        /** BuilderMappingPatch */
+        BuilderMappingPatch: {
+            /** Acceptedproxies */
+            acceptedProxies?: string[] | null;
+            /** Substitutions */
+            substitutions?: {
+                [key: string]: string;
+            } | null;
+        };
+        /** BuilderOptions */
+        BuilderOptions: {
+            /**
+             * Defaultvariants
+             * @default 3
+             */
+            defaultVariants: number;
+            /** Maxvariants */
+            maxVariants: number;
+            /** Settingsschema */
+            settingsSchema: {
+                [key: string]: unknown;
+            };
+            /** Syncedscopes */
+            syncedScopes: components["schemas"]["ScopeIn"][];
+            /** Variantkinds */
+            variantKinds?: string[];
+        };
+        /** BuilderPreview */
+        BuilderPreview: {
+            /** Batches */
+            batches: number;
+            /** Items */
+            items: components["schemas"]["BuilderPreviewItem"][];
+            /** Maxcores */
+            maxCores: number | null;
+            /** Needsreview */
+            needsReview: boolean;
+            /** Problems */
+            problems: string[];
+            /** Quota */
+            quota: string;
+            /** Simulations */
+            simulations: number;
+            /** Starts */
+            starts: boolean;
+        };
+        /** BuilderPreviewItem */
+        BuilderPreviewItem: {
+            /** Blockers */
+            blockers: string[];
+            /** Candidateid */
+            candidateId: string;
+            /** Expression */
+            expression: string | null;
+            /** Fields */
+            fields: string[];
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /** Needsreview */
+            needsReview: boolean;
+            /** Outcome */
+            outcome: string;
+            /** Reviewreasons */
+            reviewReasons: string[];
+            /** Runnable */
+            runnable: boolean;
+            /** Scope */
+            scope: {
+                [key: string]: unknown;
+            };
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            } | null;
+            /** Version */
+            version: number;
+        };
+        /** BuilderPreviewRequest */
+        BuilderPreviewRequest: {
+            /** Candidateids */
+            candidateIds: string[];
+            /** Cores */
+            cores?: number | null;
+        };
+        /** BuilderRefineRequest */
+        BuilderRefineRequest: {
+            /** Modelref */
+            modelRef?: string | null;
+        };
+        /** BuilderResults */
+        BuilderResults: {
+            /** Candidateid */
+            candidateId: string;
+            /** Checks */
+            checks: {
+                [key: string]: unknown;
+            }[];
+            /** Diagnostics */
+            diagnostics: {
+                [key: string]: unknown;
+            }[];
+            /** Expression */
+            expression: string | null;
+            /** Ideaid */
+            ideaId: string;
+            /** Message */
+            message: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            } | null;
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            } | null;
+            /** Settingsmismatch */
+            settingsMismatch?: string[];
+            /** Source */
+            source?: string | null;
+            /** State */
+            state: string;
+            /** Taskid */
+            taskId?: number | null;
+            /** Taskstatus */
+            taskStatus?: string | null;
+            /** Trials */
+            trials: {
+                [key: string]: unknown;
+            }[];
+            /** Version */
+            version: number;
+        };
+        /** BuilderTask */
+        BuilderTask: {
+            /** Candidateids */
+            candidateIds: string[];
+            /** Existing */
+            existing: boolean;
+            /** Name */
+            name: string;
+            /** Started */
+            started: boolean;
+            /** Taskid */
+            taskId: number;
+        };
+        /** BuilderTaskRequest */
+        BuilderTaskRequest: {
+            /**
+             * Acknowledgereview
+             * @default false
+             */
+            acknowledgeReview: boolean;
+            /** Candidateids */
+            candidateIds: string[];
+            /**
+             * Confirm
+             * @default false
+             */
+            confirm: boolean;
+            /** Cores */
+            cores?: number | null;
+            /** Idempotencykey */
+            idempotencyKey: string;
+        };
+        /** BuilderVariantsRequest */
+        BuilderVariantsRequest: {
+            /**
+             * Count
+             * @default 3
+             */
+            count: number;
+            /** Kinds */
+            kinds?: string[] | null;
+            /** Modelref */
+            modelRef?: string | null;
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /**
+             * Settingsconfirmed
+             * @default false
+             */
+            settingsConfirmed: boolean;
         };
         /** CancelResult */
         CancelResult: {
@@ -11216,6 +11918,618 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Quitting"];
+                };
+            };
+        };
+    };
+    get_candidate_api_research_builder_candidates__candidate_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_api_research_builder_candidates__candidate_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderEditRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_api_research_builder_candidates__candidate_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lineage_api_research_builder_candidates__candidate_id__lineage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderLineage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refine_api_research_builder_candidates__candidate_id__refine_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderRefineRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderJobStarted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    results_api_research_builder_candidates__candidate_id__results_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderResults"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revalidate_api_research_builder_candidates__candidate_id__revalidate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revise_api_research_builder_candidates__candidate_id__revise_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderEditRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_api_research_builder_candidates__candidate_id__save_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_design_api_research_builder_designs__design_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                design_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderDesign"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_mapping_api_research_builder_designs__design_id__mapping_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                design_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderMappingPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderDesign"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_variants_api_research_builder_designs__design_id__variants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                design_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderVariantsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderJobStarted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_fields_api_research_builder_fields_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderFieldSearch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderFieldHit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    candidates_api_research_builder_ideas__idea_id__candidates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderCandidate"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_design_api_research_builder_ideas__idea_id__design_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderDesignRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderJobStarted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    designs_api_research_builder_ideas__idea_id__designs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderDesign"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    options_api_research_builder_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderOptions"];
+                };
+            };
+        };
+    };
+    preview_api_research_builder_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderPreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_task_api_research_builder_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderTask"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

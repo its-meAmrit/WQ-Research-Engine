@@ -23,7 +23,7 @@ import { Select } from '@/ui/overlay'
 import { ScopePicker } from '@/ui/scope-picker'
 import type { Assessment, Idea, IdeaDetail, IdeaStatus } from './api'
 import { research } from './api'
-import { KEYS, RankingView, ReadinessBadge, SupportBadge } from './shared'
+import { KEYS, RankingView, ReadinessBadge, SupportBadge, useBuilderLauncher } from './shared'
 
 const ANY = 'any'
 const STATUS = [
@@ -144,6 +144,7 @@ export function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
     mutationFn: () => research.assess(idea.id, scope),
     onSuccess: refresh,
   })
+  const openBuilder = useBuilderLauncher()
   const handOff = useMutation({
     mutationFn: () => research.handOff(idea.id, scope),
     onSuccess: () => {
@@ -151,6 +152,7 @@ export function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
       toast('Draft sent to the Alpha Builder', {
         description:
           'It carries the idea and its source only. No expression was written and nothing was simulated.',
+        action: { label: 'Open Alpha Builder', onClick: () => openBuilder(idea.id) },
       })
     },
   })
@@ -347,6 +349,9 @@ export function IdeaCard({ summary, scope }: { summary: Idea; scope: Scope }) {
             onClick={() => handOff.mutate()}
           >
             Send to Alpha Builder
+          </Button>
+          <Button disabled={rejected} onClick={() => openBuilder(idea.id)}>
+            Open in Alpha Builder
           </Button>
         </div>
         {idea.candidates.length > 0 && (
