@@ -2927,6 +2927,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/super-lab/advanced/operators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Operators
+         * @description The full catalog: every documented operator, its context, signature, validation status
+         *     and whether and why the generator can use it. Verified against the operators BRAIN last
+         *     published to this account, when they have been read.
+         */
+        get: operations["operators_api_super_lab_advanced_operators_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/super-lab/advanced/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan
+         * @description What a task with these settings could do, without running anything.
+         */
+        post: operations["plan_api_super_lab_advanced_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/super-lab/advanced/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Task
+         * @description Create a research task, and queue it when ``run``. No candidates are written yet: the
+         *     first generation is written when the scheduler gives the task its cores.
+         */
+        post: operations["add_task_api_super_lab_advanced_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/super-lab/advanced/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail
+         * @description Everything the research screen shows for one task, computed from its trials.
+         */
+        get: operations["detail_api_super_lab_advanced_tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/super-lab/advanced/tasks/{task_id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose
+         * @description Queue an edited or hand-written candidate on a task. It must pass the local checker, and
+         *     it is refused when the task already ran that exact SuperAlpha.
+         */
+        post: operations["propose_api_super_lab_advanced_tasks__task_id__proposals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/super-lab/advanced/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate
+         * @description Run the local checker on an expression. Local acceptance is not BRAIN's.
+         */
+        post: operations["validate_api_super_lab_advanced_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/super-lab/plan": {
         parameters: {
             query?: never;
@@ -7344,6 +7468,24 @@ export interface components {
             /** Validruns */
             validRuns: number;
         };
+        /** Proposal */
+        Proposal: {
+            /** Activation */
+            activation?: ("IS" | "OS") | null;
+            /** Combo */
+            combo: string;
+            /** Decay */
+            decay?: number | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Selection */
+            selection: string;
+            /** Truncation */
+            truncation?: number | null;
+        };
         /**
          * ProvenSettings
          * @description Another set of settings the same expression is submitted at.
@@ -7677,6 +7819,105 @@ export interface components {
             topics: string[];
             /** Websearch */
             webSearch: boolean;
+        };
+        /** ResearchTask */
+        ResearchTask: {
+            /**
+             * Activation
+             * @default BOTH
+             * @enum {string}
+             */
+            activation: "IS" | "OS" | "BOTH";
+            /**
+             * Cores
+             * @default 3
+             */
+            cores: number;
+            /** Decays */
+            decays?: number[];
+            /** Delay */
+            delay: number;
+            /** Disabledfamilies */
+            disabledFamilies?: string[];
+            /** Disabledoperators */
+            disabledOperators?: string[];
+            /**
+             * Exploration
+             * @default 0.5
+             */
+            exploration: number;
+            /**
+             * Maxdepth
+             * @default 5
+             */
+            maxDepth: number;
+            /**
+             * Maxoperators
+             * @default 14
+             */
+            maxOperators: number;
+            /**
+             * Maxvariables
+             * @default 3
+             */
+            maxVariables: number;
+            /**
+             * Mutationprobability
+             * @default 0.6
+             */
+            mutationProbability: number;
+            /** Neutralization */
+            neutralization: string;
+            /**
+             * Objective
+             * @default balanced
+             * @enum {string}
+             */
+            objective: "balanced" | "sharpe" | "fitness" | "robust";
+            /**
+             * Patience
+             * @default 4
+             */
+            patience: number;
+            /** Preferredfamilies */
+            preferredFamilies?: string[];
+            /** Region */
+            region: string;
+            /**
+             * Relaxedscope
+             * @default false
+             */
+            relaxedScope: boolean;
+            /**
+             * Run
+             * @default false
+             */
+            run: boolean;
+            /**
+             * Seed
+             * @default 0
+             */
+            seed: number;
+            /**
+             * Selectionlimit
+             * @default 30
+             */
+            selectionLimit: number;
+            /**
+             * Simulations
+             * @default 60
+             */
+            simulations: number;
+            /**
+             * Strategy
+             * @default mixed
+             * @enum {string}
+             */
+            strategy: "templates" | "grammar" | "evolve" | "mixed";
+            /** Truncations */
+            truncations?: number[];
+            /** Universe */
+            universe: string;
         };
         /**
          * ResolveOptionsRequest
@@ -9170,6 +9411,18 @@ export interface components {
             releasesUrl: string;
             /** Url */
             url: string;
+        };
+        /** Validate */
+        Validate: {
+            /** Combo */
+            combo?: string | null;
+            /**
+             * Relaxedscope
+             * @default false
+             */
+            relaxedScope: boolean;
+            /** Selection */
+            selection?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -14168,6 +14421,215 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    operators_api_super_lab_advanced_operators_get: {
+        parameters: {
+            query?: {
+                relaxed_scope?: boolean;
+                disabled?: string;
+                families_off?: string;
+                examples?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plan_api_super_lab_advanced_plan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchTask"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_task_api_super_lab_advanced_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchTask"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddedTask"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detail_api_super_lab_advanced_tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    propose_api_super_lab_advanced_tasks__task_id__proposals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Proposal"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_api_super_lab_advanced_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Validate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
