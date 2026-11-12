@@ -37,6 +37,9 @@ CORRELATION_BREAKER = "correlation-breaker"
 FIELDS_SAMPLER = "fields-sampler"
 #: Studies that combine your submitted Alphas into SuperAlphas (labs.super_alpha).
 SUPER_LAB = "super-alpha"
+#: Studies that write, simulate and breed SuperAlphas from the whole operator library
+#: (labs.super_research): Advanced Mode of the Super Alpha Lab.
+SUPER_RESEARCH = "super-research"
 #: Studies that run Alphas pasted from an LLM's answer, as given (tools.paste_alphas).
 PASTE_ALPHAS = "paste-alphas"
 #: Studies that are research-lab tasks, run only from the Tasks tab, by their lab's name.
@@ -49,6 +52,7 @@ TASK_SAMPLERS = {
     CORRELATION_BREAKER: "Correlation Breaker",
     FIELDS_SAMPLER: "Fields Sampler",
     SUPER_LAB: "Super Alpha Lab",
+    SUPER_RESEARCH: "Super Alpha Research",
     PASTE_ALPHAS: "Paste Alphas",
 }
 
@@ -177,6 +181,40 @@ class SuperParams(TaskParams):
     recipes: list[str] = Field(default_factory=list)
 
 
+class SuperResearchParams(TaskParams):
+    """Super Alpha Research: candidates are written a generation at a time, from the results.
+
+    Everything that steers the search is stored with the task, so a restart (or a rerun with the
+    same ``seed``) continues the same research.
+    """
+
+    universe: str = ""
+    neutralization: str = ""
+    selection_limit: int = 30
+    activation: list[str] = Field(default_factory=lambda: ["IS", "OS"])
+    decays: list[int] = Field(default_factory=lambda: [4, 10])
+    truncations: list[float] = Field(default_factory=lambda: [0.05])
+    #: ``balanced``, ``sharpe``, ``fitness`` or ``robust``: see ``super_research.scoring``.
+    objective: str = "balanced"
+    #: ``templates``, ``grammar``, ``evolve`` or ``mixed``.
+    strategy: str = "mixed"
+    max_depth: int = 5
+    max_operators: int = 14
+    max_variables: int = 3
+    seed: int = 0
+    exploration: float = 0.5
+    mutation_probability: float = 0.6
+    disabled_operators: list[str] = Field(default_factory=list)
+    disabled_families: list[str] = Field(default_factory=list)
+    preferred_families: list[str] = Field(default_factory=list)
+    #: Generations without a new best before the task may stop early.
+    patience: int = 4
+    #: Accept an operator BRAIN lists for REGULAR only, on its arity alone.
+    relaxed_scope: bool = False
+    #: Expressions the consultant (or an LLM) proposed, validated and queued first.
+    proposals: list[dict[str, str]] = Field(default_factory=list)
+
+
 class PasteParams(TaskParams):
     """Paste Alphas: every simulation written up front, each at the settings it was pasted
     with. ``region`` and ``delay`` are the first Alpha's, shown on the task card."""
@@ -194,6 +232,7 @@ BY_SAMPLER: dict[str, type[TaskParams]] = {
     CORRELATION_BREAKER: BreakerParams,
     FIELDS_SAMPLER: FieldsSamplerParams,
     SUPER_LAB: SuperParams,
+    SUPER_RESEARCH: SuperResearchParams,
     PASTE_ALPHAS: PasteParams,
 }
 

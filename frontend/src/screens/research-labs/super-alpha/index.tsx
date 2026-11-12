@@ -35,6 +35,7 @@ import {
 } from '@/ui/kit'
 import { Select } from '@/ui/overlay'
 import { ScopePicker } from '@/ui/scope-picker'
+import { AdvancedLab } from './advanced'
 
 type Schemas = components['schemas']
 type Activation = Schemas['SuperTask']['activation']
@@ -119,7 +120,7 @@ function problemOf(kind: Kind, list: { name: string; code: string }[]) {
   return null
 }
 
-export function SuperAlphaLabScreen() {
+function ClassicLab({ switcher }: { switcher: React.ReactNode }) {
   const [scope, setScope] = useScope('/labs/super-alpha')
   const options = useScopeOptions(scope)
   const [picked, setPicked] = useState('')
@@ -183,6 +184,7 @@ export function SuperAlphaLabScreen() {
         description="Combines your submitted Alphas into SuperAlphas, ready to submit"
         actions={<AddTaskButtons add={add} disabled={!ready} blocked={problem} />}
       />
+      {switcher}
 
       <Panel
         title="Market"
@@ -379,5 +381,36 @@ function RecipeList({
         </Button>
       </div>
     </section>
+  )
+}
+
+type Mode = 'classic' | 'advanced'
+
+/** Classic is the original lab, unchanged. Advanced Research is the operator-aware engine. The
+ *  choice is remembered per browser and never alters either mode's settings. */
+const useMode = create<{ mode: Mode }>()(
+  persist(() => ({ mode: 'classic' as Mode }), {
+    name: 'alpha-harness-super-alpha-mode',
+    version: 1,
+  }),
+)
+
+export function SuperAlphaLabScreen() {
+  const mode = useMode((s) => s.mode)
+  const switcher = (
+    <Segmented<Mode>
+      label="Mode"
+      value={mode}
+      onChange={(v) => useMode.setState({ mode: v })}
+      items={[
+        { value: 'classic', label: 'Classic' },
+        { value: 'advanced', label: 'Advanced Research' },
+      ]}
+    />
+  )
+  return mode === 'advanced' ? (
+    <AdvancedLab switcher={switcher} />
+  ) : (
+    <ClassicLab switcher={switcher} />
   )
 }

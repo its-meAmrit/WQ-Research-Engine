@@ -28,6 +28,7 @@ from .params import (
     SEARCH_SAMPLER,
     SETTINGS_SAMPLER,
     SUPER_LAB,
+    SUPER_RESEARCH,
     TASK_SAMPLERS,
     TEMPLATE_SAMPLER,
     SearchParams,
@@ -428,6 +429,10 @@ async def advance(optimizer: Optimizer, study_id: int) -> int:
         from . import power_pool  # imported here: labs.power_pool builds on this module
 
         return await power_pool.refill(optimizer, row, want, waiting)
+    if row.sampler == SUPER_RESEARCH:
+        from .super_research import engine as super_engine  # builds on this module
+
+        return await super_engine.refill(optimizer, row, want, waiting)
     if row.sampler == FIELDS_SAMPLER:
         from ..tools import fields_sampler  # same cycle as settings_sampler below
 

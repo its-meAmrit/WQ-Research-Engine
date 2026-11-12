@@ -44,6 +44,7 @@ from ..labs.params import (
     FIELDS_SAMPLER,
     SETTINGS_SAMPLER,
     SUPER_LAB,
+    SUPER_RESEARCH,
     TASK_SAMPLERS,
     TEMPLATE_SAMPLER,
     task_params,
@@ -756,7 +757,7 @@ async def change(task_id: int, body: TaskChange, state: State) -> LabTask:
     row = await _one(state, task_id)
     if row.status in FINISHED:
         raise refuse(409, "finished", "A finished task can't change.")
-    if body.cores and row.sampler == SUPER_LAB and body.cores > SUPER_ALPHA_SLOTS:
+    if body.cores and row.sampler in (SUPER_LAB, SUPER_RESEARCH) and body.cores > SUPER_ALPHA_SLOTS:
         raise refuse(
             422,
             "too_many_cores",

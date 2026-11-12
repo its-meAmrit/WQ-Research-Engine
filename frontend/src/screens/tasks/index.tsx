@@ -647,11 +647,13 @@ function TaskDetail({
         `${fmt.int(task.markets)} Markets · Decay ${task.decay ?? DASH} · ${task.truncationAgent ? 'Truncation Agent' : `Truncation ${task.truncation ?? DASH}`} · NaN Handling ${task.nanHandling ?? DASH}`
       : task.lab === 'super-alpha'
         ? `${task.universe ?? DASH} · SuperAlphas from your submitted Alphas`
-        : task.lab === PASTE_ALPHAS
-          ? `${fmt.int(task.target)} pasted Alphas · ${fmt.int(task.markets)} Markets`
-          : task.seeds > 0
-            ? `${task.universe ?? DASH} · ${fmt.int(task.seeds)} seeds · Population ${fmt.int(task.population)} · Mutation ${fmt.pct(task.mutationRate, 0)}`
-            : `Decay ${task.decay ?? DASH} · ${fmt.int(task.fields)} fields`
+        : task.lab === 'super-research'
+          ? `${task.universe ?? DASH} · Advanced Research SuperAlphas, nothing submitted for you`
+          : task.lab === PASTE_ALPHAS
+            ? `${fmt.int(task.target)} pasted Alphas · ${fmt.int(task.markets)} Markets`
+            : task.seeds > 0
+              ? `${task.universe ?? DASH} · ${fmt.int(task.seeds)} seeds · Population ${fmt.int(task.population)} · Mutation ${fmt.pct(task.mutationRate, 0)}`
+              : `Decay ${task.decay ?? DASH} · ${fmt.int(task.fields)} fields`
   const copyResults = () =>
     navigator.clipboard.writeText(resultsMarkdown(task, found)).then(
       () => toast.success(`Copied ${fmt.int(found.length)} results`),
@@ -964,7 +966,12 @@ function EditTask({ task, slots, onClose }: { task: LabTask; slots: number; onCl
             label="Cores"
             items={Array.from(
               // BRAIN runs only three SuperAlpha simulations at once.
-              { length: task.lab === 'super-alpha' ? SUPER_ALPHA_SLOTS : slots },
+              {
+                length:
+                  task.lab === 'super-alpha' || task.lab === 'super-research'
+                    ? SUPER_ALPHA_SLOTS
+                    : slots,
+              },
               (_, i) => ({ value: i + 1, label: i + 1 }),
             )}
             value={cores}
